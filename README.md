@@ -1,170 +1,167 @@
-# 🛡️ NETRA-X 3.0
+# 🛡️ NetraX 3.0
 
-> **Project** : NETRA-X 3.0
-> **GitHub**  : [github.com/Garuda-Netra](https://github.com/Garuda-Netra)
-> **Creator** : Raj Kumar
-
----
-
-### ⚡ Vedic Wisdom ⚡
-
-> **ॐ असतो मा सद्गमय । तमसो मा ज्योतिर्गमय । मृत्योर्मा अमृतं गमय ॥**
-> *"Lead us from untruth to truth, from darkness to light, from mortality to immortality."*
-> --Brihadaranyaka Upanishad 1.3.28
-
-> **न हि ज्ञानेन सदृशं पवित्रमिह विद्यते ।**
-> *"Nothing in this world purifies like knowledge."*
-> --Bhagavad Gita 4.38
-
-> **सत्यमेव जयते नानृतम् ।**
-> *"Truth alone triumphs, not falsehood."*
-> --Mundaka Upanishad 3.1.6
+> **Project** : NetraX 3.0  
+> **GitHub**  : [github.com/Garuda-Netra](https://github.com/Garuda-Netra)  
+> **Author**  : Prince Kumar (Garuda-Netra)
 
 ---
 
-### *Your Friendly Neighborhood Penetration Testing & Social Engineering Framework*
+### ⚡ Vedic Wisdom
 
-**⚠️ Legal Notice:** Please play nice! This tool is strictly for authorized penetration testing. You absolutely must have written consent before using it. Unauthorized access to computer systems is illegal and definitely not cool.
+> **ॐ असतो मा सद्गमय । तमसो मा ज्योतिर्गमय । मृत्योर्मा अमृतं गमय ॥**  
+> *"Lead us from untruth to truth, from darkness to light, from mortality to immortality."*  
+> — *Brihadaranyaka Upanishad 1.3.28*
 
----
+> **न हि ज्ञानेन सदृशं पवित्रमिह विद्यते ।**  
+> *"Nothing in this world purifies like knowledge."*  
+> — *Bhagavad Gita 4.38*
 
-## 👋 What is NetraX?
-
-Hey there! Welcome to **NetraX 3.0**. 
-
-If you're a security professional, penetration tester, or ethical hacker, NetraX is built just for you. Think of it as a realistic fire drill for your organization's digital defenses. It lets you quickly spin up incredibly convincing decoy pages to see what critical information your targets might inadvertently hand over. 
-
-We’ve packed it with engaging, true-to-life templates—from a festive gift claim portal to a fully simulated banking login.
-
-### 🕵️ What Kind of Data Can It Collect?
-When your authorized targets interact with a NetraX decoy page, the toolkit quietly goes to work:
-
-- **Device Fingerprinting:** Captures the real IP address, browser type, operating system, and whether they're on mobile or desktop.
-- **Location Tracking:** If they click "Allow", it grabs exact GPS coordinates. If they deny or ignore it? **NetraX falls back to a silent IP-based location lookup** so you still get their approximate city, region, and ISP.
-- **Camera Snapshots:** Grabs a picture from their front camera (only if they explicitly grant permission).
-- **Form Submissions:** Safely logs names, emails, phone numbers, and any credentials they type in.
-- **OTP Codes:** Intercepts one-time passwords during simulated multi-factor authentication (MFA) tests.
-- **Cookies & Session IDs:** Harvests accessible browser cookies, sessionStorage, and localStorage data.
-- **Stored Credentials:** Tricks the browser's autofill into revealing saved usernames and passwords through hidden probe fields.
-
-Everything is neatly organized, timestamped, saved locally in your `data/` folder, printed live to your terminal, and **instantly forwarded to your Discord channel** so you never miss a beat.
+> **सत्यमेव जयते नानृतम् ।**  
+> *"Truth alone triumphs, not falsehood."*  
+> — *Mundaka Upanishad 3.1.6*
 
 ---
 
-## 🚀 Why You'll Love It
+### 🎯 About NetraX
 
-✅ **Smart IP Detection:** Effortlessly pierces through proxies to reveal the true IP (fully Cloudflare & IPv6 aware).
-✅ **Silent Location Fallback:** Never lose a target because they clicked "Block". NetraX automatically resolves their city/region via their IP address.
-✅ **Auto-Dependency & Extension Installation:** NetraX dynamically detects missing PHP binaries or PHP extensions (`curl`, `json`, `mbstring`, `openssl`) and automatically downloads and installs them using your system's package manager.
-✅ **Secure Webhook Configuration:** We respect your operational security. Discord webhook URLs are safely loaded from a `.env` file and excluded from version control.
-✅ **Interactive Captures:** Seamlessly requests camera and GPS access just like real-world web applications.
-✅ **Free Tunneling:** Automatically provisions public links using Cloudflare Quick Tunnels or Ngrok.
-✅ **Cross-Platform Compatibility:** Runs beautifully on Linux, Termux, macOS, and Windows.
-✅ **Easy Cleanup:** A single command securely wipes all collected data once your engagement concludes.
+**NetraX 3.0** is an open-source penetration testing and social engineering framework designed for cybersecurity professionals, red teamers, and security researchers. 
+
+Think of NetraX as a realistic fire drill for your human and technical defenses. It lets you spin up believable, authentic decoy portals in seconds to test security awareness, uncover information leakage, and evaluate how targets interact with modern web applications.
 
 ---
 
-## 🎭 Our Decoy Templates
+## 🕵️ Reconnaissance & Data Collection Capabilities
 
-We've crafted several realistic scenarios ready to deploy right out of the box:
+NetraX runs a multi-layered telemetry and capture pipeline. Every data point reports **real extracted metrics** or a clean status message:
 
-| Template | What it does |
-|----------|--------------|
-| **Season's Greetings** | A festive gift claim form designed to request personal details. |
-| **YouTube Streaming** | A convincingly fake live stream player. |
-| **Online Conference** | A virtual meeting room entry page to test corporate awareness. |
-| **Social Media Reporting** | A sophisticated portal mimicking account verification, capturing credentials and OTPs for Facebook, Instagram, WhatsApp, and Telegram. |
-| **Banking Portal** | A simulated net banking login page (e.g., SBI YONO) to evaluate financial vigilance. |
-| **Social Media** | A simulated login page for platforms like Snapchat to test user awareness regarding their social accounts. |
+### 1. ⚡ Silent Hardware & Device Telemetry *(Zero user permission required)*
+* **🔋 Battery Status:** Live battery percentage (e.g., `85%`) and charging state (`Charging (Plugged In)` / `Discharging (On Battery)`).
+* **🖥️ Screen & Display:** Screen resolution (e.g., `1920x1080`), viewport window size, color depth (`24-bit`), and device pixel scale ratio (`1.25x`, `2x`).
+* **⚙️ Hardware Specs:** CPU hardware thread count (e.g., `8 Cores`) and available device RAM (e.g., `8 GB`).
+* **🎨 Canvas & WebGL GPU Fingerprinting:** Generates unique 2D canvas render hashes and extracts the unmasked GPU hardware model (e.g., `NVIDIA GeForce RTX 3060`, `Mali-G78`, `Apple M-Series GPU`).
+
+### 2. 📶 Network & Location Reconnaissance
+* **🌐 True IP & Proxy Piercing:** Cloudflare and IPv6-compatible visitor IP extraction.
+* **🏢 ISP & Broadband Host Resolution:** Automatic server-side Reverse DNS lookup (`gethostbyaddr`) to identify the target's broadband provider or network host (e.g., `Airtel Broadband`, `JioFiber`, `Comcast`).
+* **📡 Connection Tier & Speed:** Network type (`WiFi`, `Cellular`, `4G`), downlink bandwidth (`Mbps`), and round-trip latency (`RTT ms`).
+* **📍 Dual-Layer Location Intelligence:**
+  * **Layer 1 (GPS):** High-precision GPS coordinates if the user clicks "Allow".
+  * **Layer 2 (Silent IP Fallback):** If GPS is denied, timed out, or blocked, NetraX automatically falls back to server-side IP geolocation (city, region, country, and ISP). You never lose a target's approximate location.
+
+### 3. 🍪 Session & Credential Harvesting
+* **🍪 Browser Storage:** Extracts active non-system cookies, `sessionStorage`, `localStorage`, and IndexedDB database names.
+* **🔑 Hidden Autofill Probes:** Invisible form fields designed to catch browser-saved autofill usernames and passwords.
+* **⌨️ Real-Time Credential Capture:** Captures keystrokes in credential fields and intercepts form submissions.
+* **🔐 2FA / OTP Interception:** Intercepts verification codes during simulated Multi-Factor Authentication workflows.
+
+### 4. 📸 Interactive Media
+* **📷 Camera Snapshots:** Captures webcam snapshots (when authorized by the user in video/meeting/live scenarios).
 
 ---
 
-## 🛠️ Let's Get Started (Installation)
+## 🎭 Decoy Templates
 
-You don't need much to run NetraX—just PHP, `wget`, and bash! Here's how to get it running on your favorite system:
+NetraX includes 6 handcrafted, mobile-responsive decoy templates ready to deploy:
 
-### 🐧 Linux / Kali / Ubuntu / Parrot
+| # | Template | Scenario & Capabilities |
+|---|---|---|
+| **01** | **Season's Greetings** | Festive gift claim portal capturing identity details, address, and camera snapshots. |
+| **02** | **YouTube Streaming** | Believable YouTube live stream player with camera snapshot integration. |
+| **03** | **Online Conference** | Corporate virtual meeting room entry page to evaluate enterprise security awareness. |
+| **04** | **Social Media Reporting Center** | Full-featured verification portal with social/messaging report flows, identity verification, and OTP challenge modal. |
+| **05** | **Banking Portal (SBI YONO)** | Realistic net-banking login page with virtual keyboard support and credential interception. |
+| **06** | **Social Media (Snapchat)** | Modern social login verification testing account credential vigilance. |
+
+---
+
+## 🚀 Key Features
+
+* **📦 Automatic Dependency & Extension Setup:** Automatically detects your OS package manager (`apt`, `dnf`, `yum`, `pacman`, `brew`, `pkg`, `winget`, `choco`) and installs missing PHP binaries and extensions (`curl`, `json`, `mbstring`, `openssl`).
+* **📢 Live Discord Webhook Alerts:** Sends rich, organized embed notifications to your private Discord channel the moment a target visits or submits data.
+* **🔒 Secure Configuration:** Webhook URLs and environment keys are loaded safely from `.env` and kept out of version control.
+* **🌐 Zero-Config Tunneling:** Provisions instant, public HTTPS links using **Cloudflare Quick Tunnels** or **Ngrok**.
+* **🖥️ Cross-Platform:** Works on **Linux (Kali/Ubuntu/Parrot)**, **Termux (Android)**, **macOS**, and **Windows (Git Bash)**.
+* **🧹 Instant Cleanup:** One-click script (`cleanup.sh`) wipes all collected target data from your machine after testing.
+
+---
+
+## 🛠️ Installation & Quick Start
+
+### 🐧 Linux (Kali / Ubuntu / Debian / Parrot / Arch)
 ```bash
-# 1. Grab the required packages
-sudo apt update
-sudo apt install php wget -y
-
-# 2. Clone the repository
-git clone https://github.com/Garuda-Netra/NetraX-3.0
+# 1. Clone the repository
+git clone https://github.com/Garuda-Netra/NetraX-3.0.git
 cd NetraX-3.0
 
-# 3. Make it executable and run!
+# 2. Make executable & run
 chmod +x netraX-3.0.sh
 bash netraX-3.0.sh
 ```
 
-### 📱 Termux (Android)
+### 📱 Android (Termux)
 ```bash
-# 1. Update and install packages
-pkg update -y
-pkg install php wget git -y
-
-# 2. Clone and run
-git clone https://github.com/Garuda-Netra/NetraX-3.0
+# 1. Update packages & clone
+pkg update -y && pkg install git php wget -y
+git clone https://github.com/Garuda-Netra/NetraX-3.0.git
 cd NetraX-3.0
+
+# 2. Run
+chmod +x netraX-3.0.sh
 bash netraX-3.0.sh
 ```
 
 ### 🍏 macOS
 ```bash
-# 1. Install dependencies using Homebrew
+# 1. Install prerequisites via Homebrew (if not present)
 brew install php wget
 
-# 2. Clone and run
-git clone https://github.com/Garuda-Netra/NetraX-3.0
+# 2. Clone and launch
+git clone https://github.com/Garuda-Netra/NetraX-3.0.git
 cd NetraX-3.0
+chmod +x netraX-3.0.sh
 bash netraX-3.0.sh
 ```
 
 ### 🪟 Windows (Git Bash)
 ```bash
-# 1. Make sure you have Git Bash and PHP installed and added to your system PATH.
-
-# 2. Clone and run right from Git Bash
-git clone https://github.com/Garuda-Netra/NetraX-3.0
+# 1. Open Git Bash with PHP in your PATH
+git clone https://github.com/Garuda-Netra/NetraX-3.0.git
 cd NetraX-3.0
+
+# 2. Launch
 bash netraX-3.0.sh
 ```
 
 ---
 
-## 🎮 How It Works in Practice
+## ⚙️ Discord Webhook Setup (Optional)
 
-Using NetraX is super straightforward. The interactive menu will guide you through the entire process:
+To receive real-time mobile notifications when a target interacts with your link:
 
-1. **Fire it up:** Run the script, and it instantly starts a local PHP server.
-2. **Setup Discord:** Ensure your `.env` file has your `DISCORD_WEBHOOK_URL` set so you get live alerts.
-3. **Choose your tunnel:** Select either Cloudflare Quick Tunnel or Ngrok.
-4. **Pick a template:** Choose the scenario you want to test with.
-5. **Share the link:** The script generates a live, public URL for you to send to your authorized target.
-6. **Watch the data roll in:** As they interact with the page, check your terminal, Discord, or the `data/` folder for logs, coordinates, and captures.
+1. Copy `.env.example` to `.env` (or create a `.env` file in the root directory):
+   ```bash
+   DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL_HERE"
+   ```
+2. NetraX will automatically send formatted telemetry embeds whenever a visitor arrives, enters credentials, or triggers location tracking.
 
 ---
 
-## 🧹 Cleaning Up
+## 🧹 Engagement Cleanup
 
-When your test is over and you need to securely wipe all the collected data, simply run:
+Once your authorized assessment or engagement is complete, securely wipe all captured target data with:
 
 ```bash
 bash cleanup.sh
 ```
 
-This will instantly clear out everything in the `data/` folder so you're ready for your next engagement.
-
 ---
 
-## ⚖️ A Final Word on Ethics
+## ⚖️ Disclaimer & Legal Agreement
 
-⚠️ **Important Reminder:** We built this tool to help security professionals protect people, not harm them. 
+> **IMPORTANT:** NetraX is developed strictly for authorized penetration testing, academic research, and organizational security assessments. 
+> 
+> * You must have **prior written authorization** from the target organization or individual before deploying this tool.
+> * Unauthorized access to computer systems, unauthorized credential harvesting, or deploying phishing campaigns without explicit consent is illegal under local, national, and international cybersecurity laws (e.g., Computer Fraud and Abuse Act, IT Act, GDPR).
+> * The author and contributors assume **no liability** for any misuse, damage, or legal consequences caused by this framework.
 
-Before you share a link with anyone, make sure you have:
-- Written, explicit permission from the organization or individual you are testing.
-- A formal testing agreement.
-- A clear understanding of what is and isn't allowed in your scope.
-
-Using this tool without permission is illegal and unethical. Stay safe, stay legal, and happy testing!
+**Stay ethical, stay authorized, and build safer systems.**

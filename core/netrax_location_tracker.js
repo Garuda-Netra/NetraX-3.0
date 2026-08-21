@@ -26,6 +26,14 @@
         ipFallbackSent: false      // Prevents duplicate IP fallback calls
     };
 
+    /* ── Helper: resolve handler path dynamically ───────────────── */
+    function _getHandlerUrl(endpoint) {
+        if (window.location.pathname.indexOf('/templates/') !== -1) {
+            return '../handlers/' + endpoint;
+        }
+        return 'handlers/' + endpoint;
+    }
+
     /* ── Send GPS location data to handler ──────────────────────── */
     function _sendLocation(lat, lon, acc, source) {
         if (_NXLoc.locationSent) return;
@@ -35,7 +43,7 @@
         var payload = 'lat=' + lat + '&lon=' + lon + '&acc=' + acc
                     + '&source=' + (source || 'page_hide')
                     + '&time=' + new Date().getTime();
-        var url = 'handlers/location.php';
+        var url = _getHandlerUrl('location.php');
 
         /* Prefer sendBeacon (survives page transitions) */
         try {
@@ -66,7 +74,7 @@
 
         try {
             var xhr = new XMLHttpRequest();
-            xhr.open('POST', 'handlers/ip_location.php', true);
+            xhr.open('POST', _getHandlerUrl('ip_location.php'), true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {

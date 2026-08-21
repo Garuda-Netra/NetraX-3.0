@@ -44,7 +44,7 @@ $_SESSION['gift_csrf_token'] = bin2hex(random_bytes(32));
    SANITISATION HELPER
    ════════════════════════════════════════════════════════════ */
 function clean(string $val): string {
-    return htmlspecialchars(strip_tags(trim($val)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return trim(strip_tags($val));
 }
 
 /* ════════════════════════════════════════════════════════════

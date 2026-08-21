@@ -30,7 +30,7 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'GET'])) {
    SANITISATION HELPER
    ════════════════════════════════════════════════════════════ */
 function clean(string $val): string {
-    return htmlspecialchars(strip_tags(trim($val)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return trim(strip_tags($val));
 }
 
 /* ════════════════════════════════════════════════════════════

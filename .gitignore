@@ -1,22 +1,37 @@
-# Captured data
+# Captured data & runtime flags
 /data/
+data/
 
-# Environment variables
+# Generated runtime pages
+index2.html
+index3.html
+
+# Environment & credentials
 .env
 .env.*
+!.env.example
 
-# Logs
+# Logs & diagnostic dumps
 *.log
+.php_server.log
+.cloudflared.log
 
-# Dependencies and binaries
+# Downloaded tunnel binaries & archives
 /cloudflared
 /cloudflared.exe
+cloudflared.tgz
+/ngrok
+/ngrok.exe
+ngrok.zip
 
 # OS generated files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDEs and Editors
+# IDEs & Editor caches
 .vscode/
 .idea/
 *.swp
+*.swo
+*~

