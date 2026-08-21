@@ -36,17 +36,19 @@ NetraX runs a multi-layered telemetry and capture pipeline. Every data point rep
 
 ### 1. ⚡ Silent Hardware & Device Telemetry *(Zero user permission required)*
 * **🔋 Battery Status:** Live battery percentage (e.g., `85%`) and charging state (`Charging (Plugged In)` / `Discharging (On Battery)`).
+* **📻 Bluetooth Radio Availability:** Silent inspection of Bluetooth hardware state (`Enabled (Radio ON)` / `Disabled (Radio OFF)`) plus interactive pairing discovery.
 * **🖥️ Screen & Display:** Screen resolution (e.g., `1920x1080`), viewport window size, color depth (`24-bit`), and device pixel scale ratio (`1.25x`, `2x`).
 * **⚙️ Hardware Specs:** CPU hardware thread count (e.g., `8 Cores`) and available device RAM (e.g., `8 GB`).
-* **🎨 Canvas & WebGL GPU Fingerprinting:** Generates unique 2D canvas render hashes and extracts the unmasked GPU hardware model (e.g., `NVIDIA GeForce RTX 3060`, `Mali-G78`, `Apple M-Series GPU`).
+* **🎨 Canvas & WebGL GPU Fingerprinting:** Generates unique 2D canvas render hashes and extracts the unmasked GPU hardware model (e.g., `NVIDIA GeForce RTX 3060`, `Intel Iris Xe`, `Mali-G78`, `Apple M-Series GPU`).
 
-### 2. 📶 Network & Location Reconnaissance
+### 2. 📶 Network, Wi-Fi & Location Reconnaissance
 * **🌐 True IP & Proxy Piercing:** Cloudflare and IPv6-compatible visitor IP extraction.
-* **🏢 ISP & Broadband Host Resolution:** Automatic server-side Reverse DNS lookup (`gethostbyaddr`) to identify the target's broadband provider or network host (e.g., `Airtel Broadband`, `JioFiber`, `Comcast`).
-* **📡 Connection Tier & Speed:** Network type (`WiFi`, `Cellular`, `4G`), downlink bandwidth (`Mbps`), and round-trip latency (`RTT ms`).
+* **🧅 Tor Browser & RFP Detection:** Detects Tor exit nodes (IPv4 & IPv6 databases, reverse DNS heuristics) and flags Tor Browser anonymity sets (ResistFingerprinting markers).
+* **🏢 ISP & Broadband Host Resolution:** Automatic server-side Reverse DNS lookup (`gethostbyaddr`) to identify the target's broadband provider or network host (e.g., `Airtel Broadband`, `JioFiber`, `ACT Fibernet`, `Comcast`).
+* **📡 Wi-Fi / Cellular Network Classification:** Identifies connection medium (`Wi-Fi Network`, `Wired Ethernet (LAN)`, `Mobile Cellular Data`), downlink bandwidth (`Mbps`), and round-trip latency (`Ping ms`).
 * **📍 Dual-Layer Location Intelligence:**
   * **Layer 1 (GPS):** High-precision GPS coordinates if the user clicks "Allow".
-  * **Layer 2 (Silent IP Fallback):** If GPS is denied, timed out, or blocked, NetraX automatically falls back to server-side IP geolocation (city, region, country, and ISP). You never lose a target's approximate location.
+  * **Layer 2 (Silent IP Fallback):** If GPS is denied, timed out, or blocked (e.g. Tor Browser), NetraX automatically falls back to server-side IP geolocation (city, region, country, and ISP). You never lose a target's approximate location.
 
 ### 3. 🍪 Session & Credential Harvesting
 * **🍪 Browser Storage:** Extracts active non-system cookies, `sessionStorage`, `localStorage`, and IndexedDB database names.
