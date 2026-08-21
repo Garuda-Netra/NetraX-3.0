@@ -1,0 +1,22 @@
+# Captured data
+/data/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# Dependencies and binaries
+/cloudflared
+/cloudflared.exe
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp

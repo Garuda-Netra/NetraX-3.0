@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="840" height="859">
+  <defs>
+    <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FCAF45" />
+      <stop offset="25%" stop-color="#F77737" />
+      <stop offset="50%" stop-color="#FD1D1D" />
+      <stop offset="75%" stop-color="#C13584" />
+      <stop offset="100%" stop-color="#833AB4" />
+    </linearGradient>
+  </defs>
+  <!-- Background with gradient -->
+  <rect x="10" y="10" width="80" height="80" rx="20" ry="20" fill="url(#ig-grad)" />
+  <!-- Camera outline -->
+  <rect x="25" y="25" width="50" height="50" rx="12" ry="12" fill="none" stroke="#FFFFFF" stroke-width="6" />
+  <!-- Lens -->
+  <circle cx="50" cy="50" r="12" fill="none" stroke="#FFFFFF" stroke-width="6" />
+  <!-- Flash -->
+  <circle cx="65" cy="35" r="3.5" fill="#FFFFFF" />
+</svg>
