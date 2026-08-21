@@ -198,7 +198,7 @@ install_php_extension() {
   else
     printf "\e[1;93m[\e[0m!\e[1;93m] Could not auto-install php-${ext}.\e[0m\n"
     if [[ "$ext" == "curl" ]]; then
-      printf "\e[1;93m[*] Discord webhook will use file_get_contents() fallback.\e[0m\n"
+      printf "\e[1;93m[*] Telegram / Webhook alerts will use file_get_contents() fallback.\e[0m\n"
     fi
     printf "\e[1;93m[*] You can install it manually via your package manager:\e[0m\n"
     printf "\e[1;97m      sudo apt install php${php_ver}-${ext}   (Debian/Ubuntu)\e[0m\n"

