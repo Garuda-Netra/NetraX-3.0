@@ -1,4 +1,4 @@
-Social Media Reporting Center --Template 4 (NetraX-2.0-2.O)
+Social Media Reporting --Template 4 (NetraX-2.0-2.O)
 =========================================================
 Directory : templates/social_reporting/
 Created   : 2026-03-02
@@ -9,7 +9,7 @@ Purpose
 -------
 Template 4 is a fully isolated, PHP-backed social-media account
 verification and incident-reporting portal.  It is served when the
-operator selects "Social Media Reporting Center" (option 04) inside
+operator selects "Social Media Reporting" (option 04) inside
 netraX-2.0.sh.  The template collects platform credentials and contact
 details, stores them locally, and leads the user through a two-step
 OTP verification flow.  All data files are stored in the project-level
@@ -261,7 +261,7 @@ To revert this migration (restore nested data/ folder):
 
 Suggested Commit Message
 ------------------------
-Add Social Media Reporting Center template (isolated): UI, icons,
+Add Social Media Reporting template (isolated): UI, icons,
 submit/OTP handlers, local data storage, README.
 
 Introduces templates/social_reporting/ with index.php, submit.php,

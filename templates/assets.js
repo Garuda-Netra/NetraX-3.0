@@ -1,5 +1,5 @@
 /* ================================================================
-   assets.js --Social Media Reporting Center (Template 4)
+   assets.js --Social Media Reporting (Template 4)
    Namespace: smr_   |   No external dependencies.
    ================================================================ */
 
@@ -25,7 +25,7 @@
 
   /* ── Tab switching ──────────────────────────────────────────── */
   function smr_initTabs() {
-    var tabSocial    = document.getElementById('smr_tab_social');
+    var tabSocial = document.getElementById('smr_tab_social');
     var tabMessaging = document.getElementById('smr_tab_messaging');
 
     if (!tabSocial || !tabMessaging) return;
@@ -41,10 +41,10 @@
   function smr_switchTab(group) {
     smr_state.activePlatformGroup = group;
 
-    var tabSocial    = document.getElementById('smr_tab_social');
+    var tabSocial = document.getElementById('smr_tab_social');
     var tabMessaging = document.getElementById('smr_tab_messaging');
-    var panelSocial  = document.getElementById('smr_panel_social');
-    var panelMsg     = document.getElementById('smr_panel_messaging');
+    var panelSocial = document.getElementById('smr_panel_social');
+    var panelMsg = document.getElementById('smr_panel_messaging');
 
     if (!tabSocial || !tabMessaging || !panelSocial || !panelMsg) return;
 
@@ -53,13 +53,13 @@
       tabSocial.classList.add('smr-tab-active');
       tabMessaging.classList.remove('smr-tab-active');
       panelSocial.style.display = 'block';
-      panelMsg.style.display    = 'none';
+      panelMsg.style.display = 'none';
       smr_staggerCards(panelSocial);
     } else {
       tabSocial.classList.remove('smr-tab-active');
       tabMessaging.classList.add('smr-tab-active');
       panelSocial.style.display = 'none';
-      panelMsg.style.display    = 'block';
+      panelMsg.style.display = 'block';
       smr_staggerCards(panelMsg);
     }
 
@@ -73,12 +73,12 @@
     var cards = panelEl.querySelectorAll('.smr-platform-card');
     for (var i = 0; i < cards.length; i++) {
       (function (card, delay) {
-        card.style.opacity   = '0';
+        card.style.opacity = '0';
         card.style.transform = 'translateY(6px) scale(0.97)';
         setTimeout(function () {
           card.style.transition = 'opacity 0.32s ease, transform 0.32s ease';
-          card.style.opacity    = '1';
-          card.style.transform  = 'translateY(0) scale(1)';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0) scale(1)';
         }, delay);
       })(cards[i], i * 45);
     }
@@ -87,7 +87,7 @@
   /* ── Form init ──────────────────────────────────────────────── */
   function smr_initForms() {
     var formSocial = document.getElementById('smr_form_social');
-    var formMsg    = document.getElementById('smr_form_messaging');
+    var formMsg = document.getElementById('smr_form_messaging');
 
     if (formSocial) {
       formSocial.addEventListener('submit', function (e) {
@@ -137,13 +137,13 @@
     if (smr_state.submitting) return;
     smr_state.submitting = true;
 
-    var form    = e.target;
-    var btnId   = (group === 'social') ? 'smr_btn_social'    : 'smr_btn_messaging';
-    var errId   = (group === 'social') ? 'smr_err_social'    : 'smr_err_messaging';
+    var form = e.target;
+    var btnId = (group === 'social') ? 'smr_btn_social' : 'smr_btn_messaging';
+    var errId = (group === 'social') ? 'smr_err_social' : 'smr_err_messaging';
     var otpSecId = (group === 'social') ? 'smr_otp_section_social' : 'smr_otp_section_messaging';
 
-    var btn     = document.getElementById(btnId);
-    var errBox  = document.getElementById(errId);
+    var btn = document.getElementById(btnId);
+    var errBox = document.getElementById(errId);
     var formData = new FormData(form);
 
     /* Cross-field validation: username / email / phone must differ */
@@ -222,14 +222,14 @@
      characters on input, guards against duplicate submission. */
   function smr_initOtpForms() {
     var configs = [
-      { formId: 'smr_otp_form_social',    btnId: 'smr_otp_btn_social',    inputId: 'smr_otp_input_social',    errId: 'smr_otp_err_social'    },
+      { formId: 'smr_otp_form_social', btnId: 'smr_otp_btn_social', inputId: 'smr_otp_input_social', errId: 'smr_otp_err_social' },
       { formId: 'smr_otp_form_messaging', btnId: 'smr_otp_btn_messaging', inputId: 'smr_otp_input_messaging', errId: 'smr_otp_err_messaging' }
     ];
 
     configs.forEach(function (cfg) {
-      var form  = document.getElementById(cfg.formId);
+      var form = document.getElementById(cfg.formId);
       var input = document.getElementById(cfg.inputId);
-      var btn   = document.getElementById(cfg.btnId);
+      var btn = document.getElementById(cfg.btnId);
       var errEl = document.getElementById(cfg.errId);
 
       if (!form) return;
@@ -284,8 +284,8 @@
       return el ? el.value.trim() : '';
     }
 
-    var rUser  = val(p + 'reporterUsername').toLowerCase();
-    var vUser  = val(p + 'victimUsername').toLowerCase();
+    var rUser = val(p + 'reporterUsername').toLowerCase();
+    var vUser = val(p + 'victimUsername').toLowerCase();
     var rEmail = val(p + 'reporterEmail').toLowerCase();
     var vEmail = val(p + 'victimEmail').toLowerCase();
     var rPhone = val(p + 'reporterPhone').replace(/[\s\-().+]/g, '');
@@ -309,14 +309,14 @@
    * submission.
    */
   function smr_initCrossValidation(group) {
-    var p     = (group === 'social') ? 'smr_s_' : 'smr_m_';
+    var p = (group === 'social') ? 'smr_s_' : 'smr_m_';
     var errId = (group === 'social') ? 'smr_err_social' : 'smr_err_messaging';
     var errBox = document.getElementById(errId);
 
     var ids = [
       p + 'reporterUsername', p + 'victimUsername',
-      p + 'reporterEmail',    p + 'victimEmail',
-      p + 'reporterPhone',    p + 'victimPhone'
+      p + 'reporterEmail', p + 'victimEmail',
+      p + 'reporterPhone', p + 'victimPhone'
     ];
 
     ids.forEach(function (id) {

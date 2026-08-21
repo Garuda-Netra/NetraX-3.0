@@ -31,8 +31,13 @@ if (!empty($_POST['error'])) {
     $error_msg  = preg_replace('/[\x00-\x1F\x7F]/', '', $error_msg) ?? 'Unknown geolocation error';
     $error_msg  = substr($error_msg, 0, 200);
 
-    $error_data = 'Code: ' . ($error_code !== '' ? $error_code : 'unknown') . ' - ' . $error_msg;
-    file_put_contents('php://stderr', "[NetraX-2.0] Geolocation ERROR: {$error_data}\n");
+    $extra_note = '';
+    if ($error_code === '0' || stripos($error_msg, 'not support') !== false) {
+        $extra_note = ' (Tor Browser / Privacy Restriction)';
+    }
+
+    $error_data = 'Code: ' . ($error_code !== '' ? $error_code : 'unknown') . ' - ' . $error_msg . $extra_note;
+    file_put_contents('php://stderr', "[NetraX-3.0] Geolocation ERROR: {$error_data}\n");
     file_put_contents($data_dir . '/.flag_location_error', $error_data);
 
     echo json_encode(['status' => 'error', 'message' => $error_data]);

