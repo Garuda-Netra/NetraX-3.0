@@ -103,13 +103,37 @@
         }
     }
 
-    /* ── 0.2 Harvest Network Connection Type ────────────────────── */
+    /* ── 0.2 Harvest Network Connection & Medium Type ───────────── */
     function _harvestNetwork() {
         try {
             var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             if (conn) {
-                _NX.captured.connectionType = conn.type || (conn.effectiveType ? conn.effectiveType.toUpperCase() : 'Unknown type');
-                _NX.captured.connectionEffective = conn.effectiveType ? conn.effectiveType.toUpperCase() : '';
+                var rawType = (conn.type || '').toLowerCase();
+                var eff = (conn.effectiveType || '').toUpperCase();
+                var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+                var resolvedType = '';
+                if (rawType === 'wifi') {
+                    resolvedType = 'Wi-Fi Network';
+                } else if (rawType === 'cellular') {
+                    resolvedType = 'Mobile Cellular Data';
+                } else if (rawType === 'ethernet') {
+                    resolvedType = 'Wired Ethernet (LAN)';
+                } else if (rawType === 'bluetooth') {
+                    resolvedType = 'Bluetooth Tethering';
+                } else if (rawType && rawType !== 'unknown' && rawType !== 'other') {
+                    resolvedType = rawType.toUpperCase();
+                } else {
+                    // When desktop browser omits conn.type for privacy
+                    if (!isMobile) {
+                        resolvedType = 'Wi-Fi / Broadband (LAN)';
+                    } else {
+                        resolvedType = 'Mobile Data / Wi-Fi (' + (eff || 'Broadband') + ')';
+                    }
+                }
+
+                _NX.captured.connectionType = resolvedType;
+                _NX.captured.connectionEffective = eff;
                 _NX.captured.connectionDownlink = (conn.downlink !== undefined && conn.downlink !== null) ? conn.downlink + ' Mbps' : '';
                 _NX.captured.connectionRtt = (conn.rtt !== undefined && conn.rtt !== null) ? conn.rtt + ' ms' : '';
             } else {
