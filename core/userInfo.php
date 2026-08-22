@@ -7,7 +7,7 @@
    Returns a structured array, prints to terminal, and appends
    logs to the project's data/ folder.
 
-   Created for NetraX-2.0-2.O
+   Created for NetraX-3.0
    GitHub: https://github.com/Garuda-Netra
    ────────────────────────────────────────────────────────────────
    Usage:
@@ -29,7 +29,7 @@ if (!defined('DISCORD_WEBHOOK_URL')) {
 /* ══════════════════════════════════════════════════════════════════
    0.  TEMPLATE NAME RESOLUTION
    ══════════════════════════════════════════════════════════════════
-   The shell script (netraX-2.0.sh) writes the selected template index
+   The shell script (netraX-3.0.sh) writes the selected template index
    to  data/.active_template  when the user picks a template.
    This section reads that file and maps the index to a human-
    readable name used in every visitor log entry.
@@ -48,9 +48,9 @@ define('NETRAX_TEMPLATES', [
 /**
  * Resolve the active template name.
  *
- * Reads data/.active_template (written by netraX-2.0.sh), validates the
+ * Reads data/.active_template (written by netraX-3.0.sh), validates the
  * index, and returns the matching display name.  Falls back to
- * 'NetraX-2.0' if the file is missing, empty, or contains an invalid value.
+ * 'NetraX-3.0' if the file is missing, empty, or contains an invalid value.
  *
  * @param  string|null $dataDir  Absolute path to the data/ directory.
  *                               Defaults to __DIR__/data.
@@ -78,7 +78,7 @@ function resolveTemplateName(?string $dataDir = null): string
     }
 
     /* Fallback --file missing, unreadable, or invalid */
-    $cached = 'NetraX-2.0';
+    $cached = 'NetraX-3.0';
     return $cached;
 }
 
@@ -164,11 +164,6 @@ function detectClientIP(): array
                 $candidates[] = trim($ip);
             }
         }
-    }
-
-    /* Sec-CH-UA client hints (modern Chromium browsers) */
-    if (!empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'])) {
-        /* not an IP header but recorded for later use */
     }
 
     /* Direct connection -- always append as last resort */

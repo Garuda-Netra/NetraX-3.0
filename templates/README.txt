@@ -1,4 +1,4 @@
-Social Media Reporting --Template 4 (NetraX-2.0-2.O)
+Social Media Reporting --Template 4 (NetraX-3.0)
 =========================================================
 Directory : templates/social_reporting/
 Created   : 2026-03-02
@@ -10,11 +10,11 @@ Purpose
 Template 4 is a fully isolated, PHP-backed social-media account
 verification and incident-reporting portal.  It is served when the
 operator selects "Social Media Reporting" (option 04) inside
-netraX-2.0.sh.  The template collects platform credentials and contact
+netraX-3.0.sh.  The template collects platform credentials and contact
 details, stores them locally, and leads the user through a two-step
 OTP verification flow.  All data files are stored in the project-level
 data/ directory (data/submissions/ and data/otps/) alongside other
-NetraX-2.0 data.
+NetraX-3.0 data.
 
 Unlike Templates 01–03, this template intentionally does NOT activate
 front-camera capture or GPS tracking --it focuses exclusively on
@@ -23,7 +23,7 @@ credential and OTP collection via form input.
 
 Template Routing (how Template 4 is served)
 -------------------------------------------
-1. netraX-2.0.sh select_template() option 4 is chosen.
+1. netraX-3.0.sh select_template() option 4 is chosen.
 2. payload_cloudflare() / payload_ngrok() copies
    SocialReportingPortal.html  →  index2.html
 3. index2.html performs an instant meta-refresh + JS redirect to
@@ -187,7 +187,7 @@ and timestamp.
 
 How to Test (Summary)
 ---------------------
-1. Start the server: bash netraX-2.0.sh  → choose Cloudflare → choose 04.
+1. Start the server: bash netraX-3.0.sh  → choose Cloudflare → choose 04.
 2. Open the public URL; confirm platform selector, icons, and Security
    Notice load correctly.
 
@@ -232,7 +232,7 @@ Security and Isolation Notes
   startup, logging SMR:-prefixed messages on failure.
 • Removing this template requires only:
     - Deleting templates/social_reporting/.
-    - Removing the option-4 entry from netraX-2.0.sh select_template().
+    - Removing the option-4 entry from netraX-3.0.sh select_template().
     - Optionally removing social_reporting_* files from data/submissions/
       and data/otps/.
 
@@ -241,7 +241,7 @@ Rollback
 --------
 To remove without affecting other templates:
   1. Delete templates/social_reporting/.
-  2. In netraX-2.0.sh, remove the printf line for option 04 in
+  2. In netraX-3.0.sh, remove the printf line for option 04 in
      select_template() and the `elif [[ $option_tem -eq 4 ]]` branch
      from select_template(), payload_cloudflare(), and payload_ngrok().
   3. Delete SocialReportingPortal.html if no longer needed.
@@ -343,7 +343,7 @@ Usage Notes
 Step 3 --Data Directory Setup & Permissions
 --------------------------------------------
 Submission records and OTP files are stored in the project-level data/
-folder, shared with other NetraX-2.0 data (camera captures, IP logs, etc.):
+folder, shared with other NetraX-3.0 data (camera captures, IP logs, etc.):
 
   <project-root>/data/submissions/   (initial form data)
   <project-root>/data/otps/          (OTP records)

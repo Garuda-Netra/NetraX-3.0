@@ -24,7 +24,7 @@
    ─────────────
      data/webrtc_ips.txt    --append-only human-readable log
      data/webrtc_ips.jsonl  --append-only structured JSON lines
-     data/.flag_webrtc      --polled by netraX-2.0.sh checkfound() loop
+     data/.flag_webrtc      --polled by netraX-3.0.sh checkfound() loop
    ════════════════════════════════════════════════════════════════════ */
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

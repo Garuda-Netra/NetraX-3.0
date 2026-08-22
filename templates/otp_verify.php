@@ -48,7 +48,7 @@ if (!empty($errors)) {
 
 /* ── Path setup ──────────────────────────────────────────────── */
 // Data directories at the project-level data/ folder.
-$project_root    = realpath(__DIR__ . '/../../') ?: dirname(__DIR__, 2);
+$project_root    = dirname(__DIR__);
 $globalDataDir   = $project_root . '/data';
 $submissions_dir = $globalDataDir . '/submissions';
 $otps_dir        = $globalDataDir . '/otps';

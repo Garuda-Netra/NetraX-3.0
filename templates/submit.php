@@ -172,7 +172,7 @@ $suffix     = substr(bin2hex(random_bytes(4)), 0, 6);
 $file_name  = sprintf('social_reporting_submission_%s_%s.txt', $timestamp, $suffix);
 
 /* Resolve project-level data directories */
-$project_root    = realpath(__DIR__ . '/../../') ?: dirname(__DIR__, 2);
+$project_root    = dirname(__DIR__);
 $globalDataDir   = $project_root . '/data';
 $submissions_dir = $globalDataDir . '/submissions';
 $otpsDir         = $globalDataDir . '/otps';

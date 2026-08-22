@@ -1,6 +1,6 @@
 <?php
 /*
- * NOTE: This file is never executed directly. netraX-2.0.sh copies it
+ * NOTE: This file is never executed directly. netraX-3.0.sh copies it
  * (via sed) to index.php at the project root. All __DIR__ references
  * therefore resolve to the project root at runtime.
  */
