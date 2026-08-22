@@ -1,40 +1,83 @@
-# Captured data & runtime flags
+# ═════════════════════════════════════════════════════════════════
+# NetraX-3.0 -- Git Ignore Rules
+# ═════════════════════════════════════════════════════════════════
+
+# ── 1. Captured Data, Telemetry & Runtime Directories ─────────────
 /data/
 data/
+data/*
+!data/.gitkeep
 
-# Generated runtime pages
+# ── 2. Environment & Sensitive Credentials ────────────────────────
+.env
+.env.*
+.env.local
+!.env.example
+*.pem
+*.key
+*.crt
+*.pfx
+
+# ── 3. Generated Runtime Pages & Assets ───────────────────────────
 index2.html
 index3.html
 
-# Environment & credentials
-.env
-.env.*
-!.env.example
-
-# Logs & diagnostic dumps
+# ── 4. Logs & Server Diagnostic Dumps ─────────────────────────────
 *.log
 .php_server.log
 .cloudflared.log
+error_log
+php_errors.log
 
-# Downloaded tunnel binaries & archives
+# ── 5. Downloaded Tunnel Binaries & Archives ──────────────────────
 /cloudflared
 /cloudflared.exe
 cloudflared.tgz
+cloudflared.zip
 /ngrok
 /ngrok.exe
 ngrok.zip
+ngrok.tgz
+/localtunnel
+localtunnel.exe
 
-# OS generated files
+# ── 6. Temporary, Cache, Backup & Legacy Files ────────────────────
+*.bak
+*.tmp
+*.temp
+ip.txt
+location_*.txt
+current_location.txt
+current_location.bak
+saved.locations.txt
+LocationLog.log
+LocationError.log
+Log.log
+cam*.png
+
+# ── 7. Temporary Test & Diagnostic Scripts ────────────────────────
+core/test_*.php
+test_*.php
+test_*.html
+test_*.js
+
+# ── 8. Operating System Generated Files ───────────────────────────
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Thumbs.db:encryptable
 desktop.ini
 
-# IDEs & Editor caches
+# ── 9. IDEs, Editors & Workspaces ─────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# Temporary test scripts
-core/test_*.php
+*.sublime-project
+*.sublime-workspace
+.directory

