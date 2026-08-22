@@ -146,6 +146,50 @@ install_php_package() {
   fi
 }
 
+install_unzip_package() {
+  local installed=false
+  printf "\e[1;93m[\e[0m!\e[1;93m] unzip not found --attempting auto-install...\e[0m\n"
+
+  if command -v apt-get > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected apt (Debian/Ubuntu). Installing unzip...\e[0m\n"
+    sudo apt-get update -qq > /dev/null 2>&1 && sudo apt-get install -y -qq unzip > /dev/null 2>&1 && installed=true
+  elif command -v dnf > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected dnf (Fedora/RHEL). Installing unzip...\e[0m\n"
+    sudo dnf install -y -q unzip > /dev/null 2>&1 && installed=true
+  elif command -v yum > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected yum (CentOS/RHEL). Installing unzip...\e[0m\n"
+    sudo yum install -y -q unzip > /dev/null 2>&1 && installed=true
+  elif command -v pacman > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected pacman (Arch). Installing unzip...\e[0m\n"
+    sudo pacman -Sy --noconfirm unzip > /dev/null 2>&1 && installed=true
+  elif command -v apk > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected apk (Alpine). Installing unzip...\e[0m\n"
+    sudo apk add --no-cache unzip > /dev/null 2>&1 && installed=true
+  elif command -v zypper > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected zypper (openSUSE). Installing unzip...\e[0m\n"
+    sudo zypper install -y unzip > /dev/null 2>&1 && installed=true
+  elif command -v brew > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected Homebrew (macOS). Installing unzip...\e[0m\n"
+    brew install unzip > /dev/null 2>&1 && installed=true
+  elif command -v pkg > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected pkg (Termux). Installing unzip...\e[0m\n"
+    pkg install -y unzip > /dev/null 2>&1 && installed=true
+  elif command -v choco > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected Chocolatey (Windows). Installing unzip...\e[0m\n"
+    choco install unzip -y > /dev/null 2>&1 && installed=true
+  elif command -v winget > /dev/null 2>&1; then
+    printf "\e[1;96m[*] Detected winget (Windows). Installing unzip...\e[0m\n"
+    winget install --id info-zip.unzip --accept-source-agreements --accept-package-agreements > /dev/null 2>&1 && installed=true
+  fi
+
+  if command -v unzip > /dev/null 2>&1; then
+    printf "\e[1;92m[\e[0m+\e[1;92m] unzip installed successfully!\e[0m\n"
+  else
+    printf "\e[1;91m[!] Could not auto-install unzip. Please install unzip manually. Aborting.\e[0m\n"
+    exit 1
+  fi
+}
+
 install_php_extension() {
   local ext="$1"
   if php -m 2>/dev/null | grep -qi "^${ext}$"; then
@@ -217,6 +261,11 @@ dependencies() {
   for ext in curl json mbstring openssl; do
     install_php_extension "$ext"
   done
+
+  # ── 3. Check & auto-install unzip ──────────────────────────────────────
+  if ! command -v unzip > /dev/null 2>&1; then
+    install_unzip_package
+  fi
 }
 
 stop() {

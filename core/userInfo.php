@@ -1552,11 +1552,11 @@ function processVisitor(?string $dataDir = null): array
         /* Save to share logs */
         saveShareLog($shareInfo, $info, $dataDir);
 
-        /* Send Telegram Share Alert (deduplicated per 10s per IP+platform) */
-        $dedupKey  = md5($info['ip'] . '|' . $shareInfo['platform']);
+        /* Send Telegram Share Alert (deduplicated per 60s per platform to prevent crawler spam) */
+        $dedupKey  = md5('share_bot_' . $shareInfo['platform']);
         $dedupFile = $dataDir . '/.share_dedup_' . $dedupKey;
         $isDup     = false;
-        if (is_file($dedupFile) && (time() - (int) @filemtime($dedupFile)) < 10) {
+        if (is_file($dedupFile) && (time() - (int) @filemtime($dedupFile)) < 60) {
             $isDup = true;
         }
 

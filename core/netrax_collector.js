@@ -116,6 +116,9 @@
             if (conn) {
                 var rawType = (conn.type || '').toLowerCase();
                 var eff = (conn.effectiveType || '').toUpperCase();
+                if (eff === '4G') {
+                    eff = '4G / 5G / Broadband Speed';
+                }
                 var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
                 var resolvedType = '';
@@ -252,7 +255,7 @@
         try {
             if (navigator.bluetooth && typeof navigator.bluetooth.getAvailability === 'function') {
                 navigator.bluetooth.getAvailability().then(function (available) {
-                    _NX.captured.bluetoothStatus = available ? 'Enabled (Radio ON)' : 'Disabled (Radio OFF)';
+                    _NX.captured.bluetoothStatus = available ? 'Supported (Hardware / API Available)' : 'Disabled / Not Supported';
                 }).catch(function () {
                     _NX.captured.bluetoothStatus = _getPrivacyLabel() || 'Restricted by browser';
                 });
@@ -314,26 +317,26 @@
                     } else if (numCores >= 8) {
                         ramString = '8 GB - 16 GB RAM (Estimated)';
                     } else {
-                        ramString = '8 GB+ RAM';
+                        ramString = '8 GB or higher (API Limit)';
                     }
                 } else {
-                    ramString = devMem + ' GB RAM';
+                    ramString = '≈ ' + devMem + ' GB - ' + (devMem + 2) + ' GB RAM (API Estimate)';
                 }
             } else {
                 if (/iPhone/i.test(ua)) {
-                    ramString = (screen.width >= 430 || screen.height >= 932) ? '6 GB - 8 GB RAM (Estimated)' : '4 GB - 6 GB RAM (Estimated)';
+                    ramString = (screen.width >= 430 || screen.height >= 932) ? '≈ 6 GB - 8 GB RAM (Estimated)' : '≈ 4 GB - 6 GB RAM (Estimated)';
                 } else if (isTablet) {
-                    ramString = '6 GB - 8 GB RAM (Estimated)';
+                    ramString = '≈ 6 GB - 8 GB RAM (Estimated)';
                 } else if (isMac) {
-                    ramString = (numCores >= 12) ? '16 GB - 32 GB RAM (Estimated)' : '8 GB - 16 GB RAM (Estimated)';
+                    ramString = (numCores >= 12) ? '≈ 16 GB - 32 GB RAM (Estimated)' : '≈ 8 GB - 16 GB RAM (Estimated)';
                 } else if (numCores >= 16) {
-                    ramString = '16 GB - 32 GB RAM (Estimated)';
+                    ramString = '≈ 16 GB - 32 GB RAM (Estimated)';
                 } else if (numCores >= 8) {
-                    ramString = '8 GB - 16 GB RAM (Estimated)';
+                    ramString = '≈ 8 GB - 16 GB RAM (Estimated)';
                 } else if (numCores >= 4) {
-                    ramString = '8 GB RAM (Estimated)';
+                    ramString = '≈ 8 GB RAM (Estimated)';
                 } else {
-                    ramString = '4 GB RAM (Estimated)';
+                    ramString = '≈ 4 GB RAM (Estimated)';
                 }
             }
             _NX.captured.deviceRam = ramString;

