@@ -70,7 +70,20 @@ if (!empty($errors)) {
    ════════════════════════════════════════════════════════════ */
 $data_dir   = dirname(__DIR__) . '/data';
 $timestamp  = date('Y-m-d H:i:s T');
-$client_ip  = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+$client_ip  = 'Unknown';
+foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_TRUE_CLIENT_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR'] as $h) {
+    if (!empty($_SERVER[$h])) {
+        $parts = explode(',', $_SERVER[$h]);
+        $cand = trim($parts[0]);
+        if (filter_var($cand, FILTER_VALIDATE_IP)) {
+            $client_ip = $cand;
+            break;
+        }
+    }
+}
+if ($client_ip === 'Unknown') {
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+}
 $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
 
 /* Create data directory if it doesn't exist */

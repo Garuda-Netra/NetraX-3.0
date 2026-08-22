@@ -76,7 +76,6 @@
             _NX.captured.screenColorDepth = screen.colorDepth ? screen.colorDepth + '-bit' : 'Unknown';
             _NX.captured.screenPixelRatio = window.devicePixelRatio ? window.devicePixelRatio + 'x' : '1x';
             _NX.captured.hardwareConcurrency = navigator.hardwareConcurrency ? navigator.hardwareConcurrency + ' Cores' : 'Restricted by browser';
-            _NX.captured.deviceMemory = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Restricted by browser';
         } catch (e) {
             if (!_NX.captured.screenResolution) _NX.captured.screenResolution = 'Error during extraction';
         }
@@ -266,15 +265,9 @@
             var isMac = /Macintosh|Mac OS X/i.test(ua) && !isTablet;
             var isLinux = /Linux/i.test(ua) && !isMobile;
 
-            // 1. RAM / Device Memory (Clamped to 8GB max by W3C privacy sandbox)
-            if (navigator.deviceMemory) {
-                _NX.captured.deviceRam = (navigator.deviceMemory >= 8) ? '8 GB (or higher, W3C limit)' : navigator.deviceMemory + ' GB';
-            } else {
-                _NX.captured.deviceRam = 'Restricted by browser';
-            }
-
-            // 2. CPU Cores & Architecture
-            var cores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency + ' Cores' : 'Unknown Cores';
+            // 1. CPU Cores & Architecture
+            var numCores = navigator.hardwareConcurrency || 4;
+            var cores = numCores + ' Cores';
             var arch = 'x64 (64-bit)';
             if (/arm|aarch64/i.test(ua) || (isMac && navigator.maxTouchPoints === 0 && screen.width >= 1440)) {
                 arch = 'ARM64 (Apple Silicon / ARM)';
@@ -286,26 +279,94 @@
             _NX.captured.deviceCpu = cores + ' • ' + arch;
             _NX.captured.deviceArchitecture = arch;
 
-            // 3. Storage / ROM (Browser Storage Estimation API)
+            // 2. RAM / Device Memory (Intelligent Estimation avoiding arbitrary caps)
+            var devMem = navigator.deviceMemory;
+            var ramString = '';
+            if (devMem) {
+                if (devMem >= 8) {
+                    // W3C specification caps navigator.deviceMemory at 8 GB for privacy
+                    if (numCores >= 16) {
+                        ramString = '16 GB - 32 GB RAM (Estimated • 16-Core High-End)';
+                    } else if (numCores >= 8) {
+                        ramString = '8 GB - 16 GB RAM (Estimated • 8-Core)';
+                    } else {
+                        ramString = '8 GB RAM';
+                    }
+                } else if (devMem >= 6) {
+                    ramString = '6 GB RAM';
+                } else if (devMem >= 4) {
+                    ramString = '4 GB RAM';
+                } else if (devMem >= 2) {
+                    ramString = '2 GB RAM';
+                } else {
+                    ramString = devMem + ' GB RAM';
+                }
+            } else {
+                // When deviceMemory API is restricted (e.g. Safari, iOS, Firefox)
+                if (/iPhone/i.test(ua)) {
+                    if (screen.width >= 430 || screen.height >= 932) {
+                        ramString = '6 GB - 8 GB RAM (Pro/Max Tier)';
+                    } else {
+                        ramString = '4 GB - 6 GB RAM';
+                    }
+                } else if (isTablet) {
+                    ramString = '6 GB - 8 GB RAM (Tablet)';
+                } else if (isMac) {
+                    ramString = (numCores >= 12) ? '16 GB - 32 GB RAM (Apple Silicon)' : '8 GB - 16 GB RAM';
+                } else if (numCores >= 16) {
+                    ramString = '16 GB - 32 GB RAM (Estimated • 16 Cores)';
+                } else if (numCores >= 8) {
+                    ramString = '8 GB - 16 GB RAM (Estimated • 8 Cores)';
+                } else if (numCores >= 4) {
+                    ramString = '8 GB RAM';
+                } else {
+                    ramString = '4 GB RAM';
+                }
+            }
+            _NX.captured.deviceRam = ramString;
+            _NX.captured.deviceMemory = ramString;
+
+            // 3. Storage / ROM (Physical Internal Storage & Available Quota Estimation)
             if (navigator.storage && typeof navigator.storage.estimate === 'function') {
                 navigator.storage.estimate().then(function (estimate) {
                     if (estimate && estimate.quota) {
                         var quotaGB = (estimate.quota / (1024 * 1024 * 1024)).toFixed(1);
-                        var estDisk = '';
                         var qNum = parseFloat(quotaGB);
-                        if (qNum > 150) estDisk = ' [~512 GB / 1 TB Disk Class]';
-                        else if (qNum > 70) estDisk = ' [~256 GB / 512 GB Disk Class]';
-                        else if (qNum > 30) estDisk = ' [~128 GB / 256 GB Disk Class]';
-                        else if (qNum > 10) estDisk = ' [~64 GB / 128 GB Disk Class]';
+                        var estDisk = '';
 
-                        _NX.captured.deviceStorage = '~' + quotaGB + ' GB Available Quota' + estDisk;
+                        if (isMobile) {
+                            if (qNum >= 20) {
+                                estDisk = '~256 GB - 512 GB Storage';
+                            } else if (qNum >= 8) {
+                                estDisk = '~128 GB - 256 GB Storage';
+                            } else if (qNum >= 3) {
+                                estDisk = '~64 GB - 128 GB Storage';
+                            } else {
+                                estDisk = '~32 GB - 64 GB Storage';
+                            }
+                        } else {
+                            // Desktop / Laptop
+                            if (qNum >= 80) {
+                                estDisk = '~512 GB - 1 TB SSD/Disk';
+                            } else if (qNum >= 30) {
+                                estDisk = '~256 GB - 512 GB SSD/Disk';
+                            } else if (qNum >= 8) {
+                                estDisk = '~128 GB - 256 GB SSD/Disk';
+                            } else if (qNum >= 2) {
+                                estDisk = '~64 GB - 128 GB SSD/Disk';
+                            } else {
+                                estDisk = '~32 GB - 64 GB Disk';
+                            }
+                        }
+
+                        _NX.captured.deviceStorage = estDisk + ' (~' + quotaGB + ' GB Available Quota)';
                         _NX.hasNewData = true;
                     }
                 }).catch(function () {
-                    _NX.captured.deviceStorage = 'Restricted by storage sandbox';
+                    _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB ROM' : '~256 GB - 512 GB Disk') + ' (Storage Sandbox Restricted)';
                 });
             } else {
-                _NX.captured.deviceStorage = 'Restricted by browser';
+                _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB Internal Storage' : '~256 GB - 512 GB SSD/Disk') + ' (Restricted by browser)';
             }
 
             // 4. Device Form Factor & Classification
@@ -315,7 +376,6 @@
             } else if (isMobile) {
                 type = 'Mobile Smartphone';
             } else if (isWindows || isMac || isLinux) {
-                // Check if Laptop vs Desktop via Battery API
                 if (typeof navigator.getBattery === 'function') {
                     navigator.getBattery().then(function (batt) {
                         if (!batt.charging || batt.level < 1) {

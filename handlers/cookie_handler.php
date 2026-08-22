@@ -131,9 +131,42 @@ if (!$has_meaningful_data) {
 /* ════════════════════════════════════════════════════════════
    COMMON METADATA & REVERSE DNS RESOLUTION
    ════════════════════════════════════════════════════════════ */
+/* ── Helper: Extract Real Client IP behind Cloudflare / Ngrok Tunnel ── */
+function getRealClientIP(): string {
+    $headers = [
+        'HTTP_CF_CONNECTING_IP',
+        'HTTP_TRUE_CLIENT_IP',
+        'HTTP_X_REAL_IP',
+        'HTTP_CLIENT_IP',
+    ];
+    foreach ($headers as $h) {
+        if (!empty($_SERVER[$h])) {
+            $ip = trim($_SERVER[$h]);
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return $ip;
+            }
+        }
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        foreach (array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])) as $ip) {
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return $ip;
+            }
+        }
+    }
+    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        return trim($_SERVER['HTTP_CF_CONNECTING_IP']);
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        return trim($parts[0]);
+    }
+    return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+}
+
 $data_dir   = dirname(__DIR__) . '/data';
 $timestamp  = date('Y-m-d H:i:s T');
-$client_ip  = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+$client_ip  = getRealClientIP();
 $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
 
 /* Resolve ISP Hostname via Reverse DNS (Best effort for network/broadband identification) */
@@ -249,8 +282,6 @@ if (!empty($connection_rtt)) {
 $txt_entry .= "\n";
 $txt_entry .= "Canvas Hash     : " . nxLabel($canvas_fingerprint) . "\n";
 $txt_entry .= "GPU Model       : " . nxLabel($webgl_renderer) . "\n";
-$txt_entry .= "CPU Cores       : " . nxLabel($hardware_concurrency) . "\n";
-$txt_entry .= "Device Memory   : " . nxLabel($device_memory) . "\n";
 if (!empty($device_model)) {
     $txt_entry .= "Device Model    : " . nxLabel($device_model) . "\n";
 }
