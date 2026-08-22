@@ -24,8 +24,7 @@ function _nxLoadEnvConfig(): array {
 
     $config = [
         'TELEGRAM_BOT_TOKEN'  => getenv('TELEGRAM_BOT_TOKEN') ?: ($_ENV['TELEGRAM_BOT_TOKEN'] ?? ($_SERVER['TELEGRAM_BOT_TOKEN'] ?? '')),
-        'TELEGRAM_CHAT_ID'    => getenv('TELEGRAM_CHAT_ID') ?: ($_ENV['TELEGRAM_CHAT_ID'] ?? ($_SERVER['TELEGRAM_CHAT_ID'] ?? '')),
-        'DISCORD_WEBHOOK_URL' => getenv('DISCORD_WEBHOOK_URL') ?: ($_ENV['DISCORD_WEBHOOK_URL'] ?? ($_SERVER['DISCORD_WEBHOOK_URL'] ?? ''))
+        'TELEGRAM_CHAT_ID'    => getenv('TELEGRAM_CHAT_ID') ?: ($_ENV['TELEGRAM_CHAT_ID'] ?? ($_SERVER['TELEGRAM_CHAT_ID'] ?? ''))
     ];
 
     foreach ($candidates as $env_file) {
@@ -63,8 +62,6 @@ function _nxLoadEnvConfig(): array {
                         $config['TELEGRAM_BOT_TOKEN'] = $val;
                     } elseif ($key === 'TELEGRAM_CHAT_ID' && !empty($val)) {
                         $config['TELEGRAM_CHAT_ID'] = $val;
-                    } elseif ($key === 'DISCORD_WEBHOOK_URL' && !empty($val)) {
-                        $config['DISCORD_WEBHOOK_URL'] = $val;
                     }
                 }
                 break;
@@ -87,12 +84,8 @@ if (!defined('TELEGRAM_BOT_TOKEN')) {
 if (!defined('TELEGRAM_CHAT_ID')) {
     define('TELEGRAM_CHAT_ID', $env_cfg['TELEGRAM_CHAT_ID']);
 }
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    define('DISCORD_WEBHOOK_URL', $env_cfg['DISCORD_WEBHOOK_URL']);
-}
 
 define('TELEGRAM_LOG_FILE', dirname(__DIR__) . '/data/telegram_errors.log');
-define('DISCORD_LOG_FILE', dirname(__DIR__) . '/data/discord_errors.log');
 
 /* ════════════════════════════════════════════════════════════════════
    PUBLIC TELEGRAM API
@@ -131,7 +124,6 @@ function sendTelegramNotification(string $message): bool
 function sendTelegramAlert(string $title, array $fields = []): bool
 {
     $has_tg = (!empty(TELEGRAM_BOT_TOKEN) && !empty(TELEGRAM_CHAT_ID));
-    $has_dc = (!empty(DISCORD_WEBHOOK_URL));
 
     $tg_success = false;
 
@@ -167,29 +159,6 @@ function sendTelegramAlert(string $title, array $fields = []): bool
         $tg_success = _telegramPost($url, $params);
     }
 
-    // Dual dispatch to Discord if configured
-    if ($has_dc) {
-        $embed_fields = [];
-        foreach ($fields as $name => $value) {
-            $embed_fields[] = [
-                'name'   => (string) $name,
-                'value'  => '`' . (strlen((string)$value) > 250 ? substr((string)$value, 0, 247) . '...' : (string)$value) . '`',
-                'inline' => false,
-            ];
-        }
-        $payload = json_encode([
-            'username' => 'Netra-X Bot',
-            'embeds'   => [[
-                'title'     => $title,
-                'color'     => 0x0088CC, // Telegram Blue
-                'fields'    => $embed_fields,
-                'footer'    => ['text' => 'Netra-X • ' . date('Y-m-d H:i:s T')],
-                'timestamp' => date('c'),
-            ]],
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        _discordPost(DISCORD_WEBHOOK_URL, $payload);
-    }
-
     return $tg_success;
 }
 
@@ -203,7 +172,6 @@ function sendTelegramAlert(string $title, array $fields = []): bool
 function sendTelegramImage(string $filepath, string $caption = '📸 Webcam snapshot captured.'): bool
 {
     $has_tg = (!empty(TELEGRAM_BOT_TOKEN) && !empty(TELEGRAM_CHAT_ID));
-    $has_dc = (!empty(DISCORD_WEBHOOK_URL));
 
     $tg_success = false;
 
@@ -257,11 +225,6 @@ function sendTelegramImage(string $filepath, string $caption = '📸 Webcam snap
                 _telegramLogError("sendPhoto failed HTTP {$httpCode}: {$response}" . ($curlErr ? " | cURL: {$curlErr}" : ''));
             }
         }
-    }
-
-    // Dual dispatch to Discord if configured
-    if ($has_dc) {
-        _discordPostImage(DISCORD_WEBHOOK_URL, $filepath, $caption);
     }
 
     return $tg_success;
@@ -367,118 +330,4 @@ function _telegramLogError(string $msg): void
         @mkdir($logDir, 0750, true);
     }
     @file_put_contents(TELEGRAM_LOG_FILE, '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n", FILE_APPEND);
-}
-
-function _discordPost(string $webhook_url, string $json_payload): bool
-{
-    if (empty($webhook_url) || !filter_var($webhook_url, FILTER_VALIDATE_URL)) {
-        return false;
-    }
-
-    if (function_exists('curl_init')) {
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL            => $webhook_url,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $json_payload,
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_USERAGENT      => 'NetraX-Notifier/3.0',
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlErr  = curl_error($ch);
-        curl_close($ch);
-
-        if ($httpCode >= 200 && $httpCode < 300) {
-            return true;
-        }
-
-        _discordLogError("Discord webhook failed HTTP {$httpCode}: {$response}" . ($curlErr ? " | cURL: {$curlErr}" : ''));
-        return false;
-    }
-
-    $opts = [
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/json\r\nUser-Agent: NetraX-Notifier/3.0\r\n",
-            'content' => $json_payload,
-            'timeout' => 10,
-            'ignore_errors' => true,
-        ],
-        'ssl' => [
-            'verify_peer'      => false,
-            'verify_peer_name' => false,
-        ]
-    ];
-    $ctx = stream_context_create($opts);
-    $res = @file_get_contents($webhook_url, false, $ctx);
-    if ($res !== false) {
-        return true;
-    }
-
-    _discordLogError("Discord stream post failed for {$webhook_url}");
-    return false;
-}
-
-function _discordPostImage(string $webhook_url, string $filepath, string $caption = ''): bool
-{
-    if (empty($webhook_url) || !is_file($filepath) || !is_readable($filepath)) {
-        return false;
-    }
-
-    $mime = 'image/png';
-    if (function_exists('mime_content_type')) {
-        $m = @mime_content_type($filepath);
-        if (!empty($m)) $mime = $m;
-    }
-
-    if (function_exists('curl_init')) {
-        $ch = curl_init();
-        $cfile = class_exists('CURLFile') ? new CURLFile($filepath, $mime, basename($filepath)) : '@' . realpath($filepath);
-        $postFields = [
-            'file'    => $cfile,
-            'content' => $caption,
-        ];
-
-        curl_setopt_array($ch, [
-            CURLOPT_URL            => $webhook_url,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $postFields,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 15,
-            CURLOPT_CONNECTTIMEOUT => 6,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_USERAGENT      => 'NetraX-Notifier/3.0',
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlErr  = curl_error($ch);
-        curl_close($ch);
-
-        if ($httpCode >= 200 && $httpCode < 300) {
-            return true;
-        }
-
-        _discordLogError("Discord image upload failed HTTP {$httpCode}: {$response}" . ($curlErr ? " | cURL: {$curlErr}" : ''));
-        return false;
-    }
-
-    return false;
-}
-
-function _discordLogError(string $msg): void
-{
-    $logDir = dirname(DISCORD_LOG_FILE);
-    if (!is_dir($logDir)) {
-        @mkdir($logDir, 0750, true);
-    }
-    @file_put_contents(DISCORD_LOG_FILE, '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n", FILE_APPEND);
 }
