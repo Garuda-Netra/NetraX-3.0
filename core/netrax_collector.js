@@ -332,64 +332,36 @@
             // 5. Device Model Identification
             var detectedModel = '';
 
-            // 5A. High-Entropy Client Hints (Chrome / Edge / Android exact model)
+            // 5A. High-Entropy Client Hints (Chrome / Edge / Android exact raw model)
             if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
                 navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'architecture', 'bitness'])
                     .then(function (hints) {
                         if (hints.model && hints.model !== '') {
-                            var modelName = hints.model;
-                            var smMap = {
-                                'SM-S928': 'Samsung Galaxy S24 Ultra', 'SM-S921': 'Samsung Galaxy S24',
-                                'SM-S926': 'Samsung Galaxy S24+',      'SM-S918': 'Samsung Galaxy S23 Ultra',
-                                'SM-S911': 'Samsung Galaxy S23',        'SM-S916': 'Samsung Galaxy S23+',
-                                'SM-S908': 'Samsung Galaxy S22 Ultra',  'SM-S901': 'Samsung Galaxy S22',
-                                'SM-A546': 'Samsung Galaxy A54 5G',    'SM-A536': 'Samsung Galaxy A53 5G',
-                                'SM-A346': 'Samsung Galaxy A34 5G',    'SM-A145': 'Samsung Galaxy A14',
-                                'SM-F946': 'Samsung Galaxy Z Fold 5',   'SM-F731': 'Samsung Galaxy Z Flip 5',
-                                'SM-N986': 'Samsung Galaxy Note 20 Ultra',
-                                'Pixel 8 Pro': 'Google Pixel 8 Pro',   'Pixel 8': 'Google Pixel 8',
-                                'Pixel 7 Pro': 'Google Pixel 7 Pro',   'Pixel 7': 'Google Pixel 7',
-                                'Pixel 6 Pro': 'Google Pixel 6 Pro',   'Pixel 6': 'Google Pixel 6',
-                                'CPH2451': 'OnePlus 11 5G',            'CPH2581': 'OnePlus 12'
-                            };
-                            for (var code in smMap) {
-                                if (modelName.indexOf(code) !== -1) {
-                                    modelName = smMap[code] + ' (' + modelName + ')';
-                                    break;
-                                }
-                            }
-                            _NX.captured.deviceModel = modelName;
+                            _NX.captured.deviceModel = hints.model;
                             _NX.hasNewData = true;
                         }
                     }).catch(function() {});
             }
 
-            // 5B. Apple iPhone / iPad Model Heuristics (Screen + Ratio + GPU)
-            if (/iPhone|iPad|iPod/i.test(ua) || (isTablet && isMac)) {
+            // 5B. Apple & Desktop Device Model Fallbacks
+            if (/iPhone/i.test(ua)) {
                 var w = Math.min(screen.width, screen.height);
                 var h = Math.max(screen.width, screen.height);
                 var dpr = window.devicePixelRatio || 1;
-
-                if (/iPhone/i.test(ua)) {
-                    if (w === 430 && h === 932) detectedModel = 'Apple iPhone 15 Pro Max / 16 Plus';
-                    else if (w === 393 && h === 852) detectedModel = 'Apple iPhone 15 Pro / 15 / 16';
-                    else if (w === 428 && h === 926) detectedModel = 'Apple iPhone 14 Plus / 13 Pro Max / 12 Pro Max';
-                    else if (w === 390 && h === 844) detectedModel = 'Apple iPhone 14 / 13 / 13 Pro / 12';
-                    else if (w === 414 && h === 896 && dpr === 3) detectedModel = 'Apple iPhone 11 Pro Max / XS Max';
-                    else if (w === 414 && h === 896 && dpr === 2) detectedModel = 'Apple iPhone 11 / XR';
-                    else if (w === 375 && h === 812) detectedModel = 'Apple iPhone 13 mini / 12 mini / 11 Pro / X';
-                    else if (w === 414 && h === 736) detectedModel = 'Apple iPhone 8 Plus / 7 Plus / 6s Plus';
-                    else if (w === 375 && h === 667) detectedModel = 'Apple iPhone SE (2nd/3rd Gen) / 8 / 7';
-                    else detectedModel = 'Apple iPhone (' + w + 'x' + h + ' @' + dpr + 'x)';
-                } else {
-                    detectedModel = 'Apple iPad (' + w + 'x' + h + ' @' + dpr + 'x)';
-                }
+                detectedModel = 'iPhone (' + w + 'x' + h + ' @' + dpr + 'x)';
+            } else if (/iPad/i.test(ua) || (isTablet && isMac)) {
+                var w = Math.min(screen.width, screen.height);
+                var h = Math.max(screen.width, screen.height);
+                var dpr = window.devicePixelRatio || 1;
+                detectedModel = 'iPad (' + w + 'x' + h + ' @' + dpr + 'x)';
             } else if (isMac) {
-                detectedModel = 'Apple Mac / MacBook (' + arch + ')';
+                detectedModel = 'Macintosh (' + arch + ')';
             } else if (isWindows) {
                 var gpu = _NX.captured.webglRenderer || '';
                 var cleanGpu = gpu ? gpu.split('(')[0].replace('ANGLE', '').trim() : '';
-                detectedModel = 'Windows PC / Laptop' + (cleanGpu ? ' (' + cleanGpu + ')' : '');
+                detectedModel = 'Windows PC' + (cleanGpu ? ' (' + cleanGpu + ')' : ' (' + arch + ')');
+            } else if (isLinux) {
+                detectedModel = 'Linux Device (' + arch + ')';
             }
 
             if (!_NX.captured.deviceModel && detectedModel) {

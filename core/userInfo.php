@@ -671,12 +671,33 @@ function detectDeviceModel(string $ua): string
         return trim($m[0]);
     }
 
-    /* ── Oppo / Realme / Vivo ── */
+    /* ── Oppo / Realme / Vivo / iQOO ── */
+    if (preg_match('#\b(RMX\d{4})\b#i', $uaClean, $m)) {
+        return 'Realme (' . $m[1] . ')';
+    }
+    if (preg_match('#\b(CPH\d{4})\b#i', $uaClean, $m)) {
+        return 'OnePlus / OPPO (' . $m[1] . ')';
+    }
+    if (preg_match('#\b(V\d{4}[A-Z]?|vivo[\s\-]?\w+)\b#i', $uaClean, $m)) {
+        return 'Vivo (' . $m[1] . ')';
+    }
+    if (preg_match('#\b(I\d{4}|iQOO[\s\-]?\w+)\b#i', $uaClean, $m)) {
+        return 'iQOO (' . $m[1] . ')';
+    }
     if (preg_match('#(?:OPPO|Realme|Vivo)[\s\-]?([\w\s]+?)(?:[;)\s/]|$)#i', $uaClean, $m)) {
         return trim($m[0]);
     }
 
+    /* ── Nothing Phone ── */
+    if (preg_match('#\b(A063|A065|A142)\b#i', $uaClean, $m)) {
+        $nMap = ['A063' => 'Nothing Phone (1)', 'A065' => 'Nothing Phone (2)', 'A142' => 'Nothing Phone (2a)'];
+        return $nMap[$m[1]] ?? ('Nothing Phone (' . $m[1] . ')');
+    }
+
     /* ── Motorola ── */
+    if (preg_match('#\b(XT\d{4}(?:-\d)?)\b#i', $uaClean, $m)) {
+        return 'Motorola (' . $m[1] . ')';
+    }
     if (preg_match('#(?:Moto[\s\-G|\s\-E|\s\-Z|la])[\s\-]?([\w\s]+?)(?:[;)\s/]|$)#i',
                    $uaClean, $m)) {
         return trim($m[0]);
