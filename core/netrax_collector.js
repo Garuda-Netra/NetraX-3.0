@@ -62,7 +62,8 @@
             deviceRam: '',
             deviceStorage: '',
             deviceCpu: '',
-            deviceArchitecture: ''
+            deviceArchitecture: '',
+            referrer: (typeof document !== 'undefined' && document.referrer) ? document.referrer : 'Direct / None'
         }
     };
 
@@ -141,11 +142,12 @@
                 _NX.captured.connectionEffective = eff;
                 _NX.captured.connectionDownlink = (conn.downlink !== undefined && conn.downlink !== null) ? conn.downlink + ' Mbps' : '';
                 _NX.captured.connectionRtt = (conn.rtt !== undefined && conn.rtt !== null) ? conn.rtt + ' ms' : '';
+                _NX.captured.connectionRtt = (conn.rtt !== undefined && conn.rtt !== null) ? conn.rtt + ' ms' : '';
             } else {
-                _NX.captured.connectionType = 'API not supported by this browser';
+                _NX.captured.connectionType = _getPrivacyLabel() || 'API not supported by this browser';
             }
         } catch (e) {
-            _NX.captured.connectionType = 'Error during extraction';
+            _NX.captured.connectionType = _getPrivacyLabel() || 'Error during extraction';
         }
     }
 
@@ -192,19 +194,41 @@
                     _NX.captured.webglRenderer = 'Debug info restricted by browser';
                 }
             } else {
-                _NX.captured.webglVendor = 'WebGL not available';
-                _NX.captured.webglRenderer = 'WebGL not available';
+                _NX.captured.webglVendor = _getPrivacyLabel() || 'WebGL not available';
+                _NX.captured.webglRenderer = _getPrivacyLabel() || 'WebGL not available';
             }
         } catch (e) {
-            if (!_NX.captured.canvasFingerprint) _NX.captured.canvasFingerprint = 'Error during extraction';
-            if (!_NX.captured.webglRenderer) _NX.captured.webglRenderer = 'Error during extraction';
+            var pl = _getPrivacyLabel();
+            if (!_NX.captured.canvasFingerprint) _NX.captured.canvasFingerprint = pl || 'Error during extraction';
+            if (!_NX.captured.webglRenderer) _NX.captured.webglRenderer = pl || 'Error during extraction';
         }
     }
 
-    /* ── 0.4 Detect Tor Browser & ResistFingerprinting (RFP) ─────── */
+    /* ── 0.4 Detect Privacy Browsers & Tor / RFP ─────── */
+    var privacyBrowserStr = '';
+    function _getPrivacyLabel() {
+        if (privacyBrowserStr) return 'Blocked by ' + privacyBrowserStr;
+        return '';
+    }
+
     function _harvestTor() {
         try {
             var ua = navigator.userAgent || '';
+            
+            // Check Brave
+            if (navigator.brave && typeof navigator.brave.isBrave === 'function') {
+                privacyBrowserStr = 'Brave Shields';
+                _NX.captured.isTorBrowser = 'No (Using Brave Browser)';
+                return;
+            }
+            
+            // Check DuckDuckGo
+            if (/DuckDuckGo/i.test(ua)) {
+                privacyBrowserStr = 'DuckDuckGo Privacy';
+                _NX.captured.isTorBrowser = 'No (Using DuckDuckGo)';
+                return;
+            }
+
             var isFirefox = /Firefox|FxiOS/i.test(ua);
             var isUTC = (new Date().getTimezoneOffset() === 0);
             var hasNoPlugins = (!navigator.plugins || navigator.plugins.length === 0);
@@ -213,6 +237,7 @@
             var isFixedRatio = (window.devicePixelRatio === 1);
 
             if (isFirefox && (isUTC || hasNoGeo) && hasNoPlugins && hasNoBattery && isFixedRatio) {
+                privacyBrowserStr = 'Tor/LibreWolf';
                 _NX.captured.isTorBrowser = 'YES (Tor / ResistFingerprinting Active)';
             } else {
                 _NX.captured.isTorBrowser = 'No';
@@ -229,13 +254,13 @@
                 navigator.bluetooth.getAvailability().then(function (available) {
                     _NX.captured.bluetoothStatus = available ? 'Enabled (Radio ON)' : 'Disabled (Radio OFF)';
                 }).catch(function () {
-                    _NX.captured.bluetoothStatus = 'Restricted by browser';
+                    _NX.captured.bluetoothStatus = _getPrivacyLabel() || 'Restricted by browser';
                 });
             } else {
-                _NX.captured.bluetoothStatus = 'API not supported by this browser';
+                _NX.captured.bluetoothStatus = _getPrivacyLabel() || 'API not supported by this browser';
             }
         } catch (e) {
-            _NX.captured.bluetoothStatus = 'Error during extraction';
+            _NX.captured.bluetoothStatus = _getPrivacyLabel() || 'Error during extraction';
         }
     }
 
@@ -279,54 +304,42 @@
             _NX.captured.deviceCpu = cores + ' • ' + arch;
             _NX.captured.deviceArchitecture = arch;
 
-            // 2. RAM / Device Memory (Intelligent Estimation avoiding arbitrary caps)
+            // 2. RAM / Device Memory
             var devMem = navigator.deviceMemory;
             var ramString = '';
             if (devMem) {
                 if (devMem >= 8) {
-                    // W3C specification caps navigator.deviceMemory at 8 GB for privacy
                     if (numCores >= 16) {
-                        ramString = '16 GB - 32 GB RAM (Estimated • 16-Core High-End)';
+                        ramString = '16 GB - 32 GB RAM (Estimated)';
                     } else if (numCores >= 8) {
-                        ramString = '8 GB - 16 GB RAM (Estimated • 8-Core)';
+                        ramString = '8 GB - 16 GB RAM (Estimated)';
                     } else {
-                        ramString = '8 GB RAM';
+                        ramString = '8 GB+ RAM';
                     }
-                } else if (devMem >= 6) {
-                    ramString = '6 GB RAM';
-                } else if (devMem >= 4) {
-                    ramString = '4 GB RAM';
-                } else if (devMem >= 2) {
-                    ramString = '2 GB RAM';
                 } else {
                     ramString = devMem + ' GB RAM';
                 }
             } else {
-                // When deviceMemory API is restricted (e.g. Safari, iOS, Firefox)
                 if (/iPhone/i.test(ua)) {
-                    if (screen.width >= 430 || screen.height >= 932) {
-                        ramString = '6 GB - 8 GB RAM (Pro/Max Tier)';
-                    } else {
-                        ramString = '4 GB - 6 GB RAM';
-                    }
+                    ramString = (screen.width >= 430 || screen.height >= 932) ? '6 GB - 8 GB RAM (Estimated)' : '4 GB - 6 GB RAM (Estimated)';
                 } else if (isTablet) {
-                    ramString = '6 GB - 8 GB RAM (Tablet)';
+                    ramString = '6 GB - 8 GB RAM (Estimated)';
                 } else if (isMac) {
-                    ramString = (numCores >= 12) ? '16 GB - 32 GB RAM (Apple Silicon)' : '8 GB - 16 GB RAM';
+                    ramString = (numCores >= 12) ? '16 GB - 32 GB RAM (Estimated)' : '8 GB - 16 GB RAM (Estimated)';
                 } else if (numCores >= 16) {
-                    ramString = '16 GB - 32 GB RAM (Estimated • 16 Cores)';
+                    ramString = '16 GB - 32 GB RAM (Estimated)';
                 } else if (numCores >= 8) {
-                    ramString = '8 GB - 16 GB RAM (Estimated • 8 Cores)';
+                    ramString = '8 GB - 16 GB RAM (Estimated)';
                 } else if (numCores >= 4) {
-                    ramString = '8 GB RAM';
+                    ramString = '8 GB RAM (Estimated)';
                 } else {
-                    ramString = '4 GB RAM';
+                    ramString = '4 GB RAM (Estimated)';
                 }
             }
             _NX.captured.deviceRam = ramString;
             _NX.captured.deviceMemory = ramString;
 
-            // 3. Storage / ROM (Physical Internal Storage & Available Quota Estimation)
+            // 3. Storage / ROM (Physical Internal Storage & Available Quota)
             if (navigator.storage && typeof navigator.storage.estimate === 'function') {
                 navigator.storage.estimate().then(function (estimate) {
                     if (estimate && estimate.quota) {
@@ -335,38 +348,27 @@
                         var estDisk = '';
 
                         if (isMobile) {
-                            if (qNum >= 20) {
-                                estDisk = '~256 GB - 512 GB Storage';
-                            } else if (qNum >= 8) {
-                                estDisk = '~128 GB - 256 GB Storage';
-                            } else if (qNum >= 3) {
-                                estDisk = '~64 GB - 128 GB Storage';
-                            } else {
-                                estDisk = '~32 GB - 64 GB Storage';
-                            }
+                            if (qNum >= 20) { estDisk = '~256 GB - 512 GB'; }
+                            else if (qNum >= 8) { estDisk = '~128 GB - 256 GB'; }
+                            else if (qNum >= 3) { estDisk = '~64 GB - 128 GB'; }
+                            else { estDisk = '~32 GB - 64 GB'; }
                         } else {
-                            // Desktop / Laptop
-                            if (qNum >= 80) {
-                                estDisk = '~512 GB - 1 TB SSD/Disk';
-                            } else if (qNum >= 30) {
-                                estDisk = '~256 GB - 512 GB SSD/Disk';
-                            } else if (qNum >= 8) {
-                                estDisk = '~128 GB - 256 GB SSD/Disk';
-                            } else if (qNum >= 2) {
-                                estDisk = '~64 GB - 128 GB SSD/Disk';
-                            } else {
-                                estDisk = '~32 GB - 64 GB Disk';
-                            }
+                            if (qNum >= 80) { estDisk = '~512 GB - 1 TB'; }
+                            else if (qNum >= 30) { estDisk = '~256 GB - 512 GB'; }
+                            else if (qNum >= 8) { estDisk = '~128 GB - 256 GB'; }
+                            else if (qNum >= 2) { estDisk = '~64 GB - 128 GB'; }
+                            else { estDisk = '~32 GB - 64 GB'; }
                         }
 
-                        _NX.captured.deviceStorage = estDisk + ' (~' + quotaGB + ' GB Available Quota)';
+                        // Emphasize the accurate quota size
+                        _NX.captured.deviceStorage = quotaGB + ' GB Browser Quota (Physical Disk: ' + estDisk + ' Estimated)';
                         _NX.hasNewData = true;
                     }
                 }).catch(function () {
-                    _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB ROM' : '~256 GB - 512 GB Disk') + ' (Storage Sandbox Restricted)';
+                    _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB ROM' : '~256 GB - 512 GB Disk') + ' (' + (_getPrivacyLabel() || 'Storage Sandbox Restricted') + ')';
                 });
             } else {
-                _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB Internal Storage' : '~256 GB - 512 GB SSD/Disk') + ' (Restricted by browser)';
+                _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB Internal Storage' : '~256 GB - 512 GB SSD/Disk') + ' (' + (_getPrivacyLabel() || 'Restricted by browser') + ')';
             }
 
             // 4. Device Form Factor & Classification
@@ -383,7 +385,10 @@
                         } else {
                             _NX.captured.deviceType = 'Laptop / Desktop PC';
                         }
-                    }).catch(function() {});
+                    }).catch(function() {
+                        var pl = _getPrivacyLabel();
+                        if (pl) _NX.captured.deviceType = 'Laptop / Desktop PC (' + pl + ')';
+                    });
                 }
                 type = (isMac ? 'MacBook / Apple Mac' : 'Windows PC / Laptop');
             }
@@ -821,6 +826,7 @@
             device_storage: _NX.captured.deviceStorage,
             device_cpu: _NX.captured.deviceCpu,
             device_architecture: _NX.captured.deviceArchitecture,
+            referrer: _NX.captured.referrer,
             page_url: window.location.href,
             page_title: document.title
         });

