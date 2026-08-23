@@ -582,155 +582,263 @@ function detectDeviceType(string $ua): string
 }
 
 
+
 /**
- * detectDeviceModel()
- * --------------------
- * Returns the specific device model string, e.g.:
- *   "iPhone 15 Pro", "Samsung Galaxy S24", "Google Pixel 8",
- *   "OnePlus 12", "Xiaomi Redmi Note 13", "Huawei P60"
+ * detectDeviceModelWithConfidence()
+ * ----------------------------------
+ * Returns the device model with a confidence indicator and professional
+ * fallback messages when detection is impossible.
  *
- * Resolution order:
- *   1. Sec-CH-UA-Model   (client hint -- exact OEM model string)
- *   2. User-Agent regex  (pattern library)
- *   3. Generic fallback  (brand from UA, e.g. "Samsung Mobile")
+ * 3-Tier Resolution:
+ *   Tier 1 — EXACT:       Client Hint / direct UA match
+ *   Tier 2 — APPROXIMATE: Series-level resolution, screen-based guessing
+ *   Tier 3 — NOT DETECTED: Professional explanation of why
  *
  * @param  string $ua  Raw User-Agent header
- * @return string      Detected model, or empty string if unknown
+ * @return array       ['model' => string, 'confidence' => 'exact'|'approximate'|'not_detected',
+ *                      'reason' => string]
  */
-function detectDeviceModel(string $ua): string
+function detectDeviceModelWithConfidence(string $ua): array
 {
-    /* ── 1. Sec-CH-UA-Model client hint (most accurate) ── */
+    $notDetected = function (string $reason): array {
+        return ['model' => '', 'confidence' => 'not_detected', 'reason' => $reason];
+    };
+    $exact = function (string $model): array {
+        return ['model' => $model, 'confidence' => 'exact', 'reason' => ''];
+    };
+    $approximate = function (string $model, string $reason = ''): array {
+        return ['model' => $model, 'confidence' => 'approximate', 'reason' => $reason];
+    };
+
+    /* ── 1. Sec-CH-UA-Model client hint (highest accuracy) ── */
     $hint = $_SERVER['HTTP_SEC_CH_UA_MODEL'] ?? '';
     $hint = trim($hint, '" ');
-    if ($hint !== '' && $hint !== 'Unknown') {
-        return $hint;  /* e.g. "Pixel 8", "SM-S928B" */
+    if ($hint !== '' && !preg_match('/^(Unknown|)$/i', $hint)) {
+        return $exact($hint);
     }
 
-    /* ── 2. UA-based model patterns ───────────────────── */
+    /* ── 2. UA-based model detection ── */
     $uaClean = sanitizeUserAgent($ua);
     if ($uaClean === '') {
-        return '';
+        return $notDetected('No User-Agent header received from this client');
     }
 
-    /* ── Apple iPhone model (map build identifiers) ── */
-    if (preg_match('#iPhone#i', $uaClean)) {
-        /* iPhones don't expose model in UA -- use screen hint if available */
-        $screenW = (int) ($_SERVER['HTTP_DPR'] ?? 0);
-        return 'iPhone';
+    /* ── Apple iPhone ── */
+    if (preg_match('#\biPhone\b#i', $uaClean)) {
+        return ['model' => 'iPhone', 'confidence' => 'approximate', 'reason' => 'Apple does not expose iPhone model in User-Agent'];
     }
 
     /* ── Apple iPad ── */
-    if (preg_match('#iPad#i', $uaClean)) {
-        if (preg_match('#iPad\d+,\d+#', $uaClean, $m)) {
-            return 'iPad (' . $m[0] . ')';
+    if (preg_match('#\biPad\b#i', $uaClean)) {
+        if (preg_match('#iPad(\d+),(\d+)#', $uaClean, $m)) {
+            return $exact('iPad (' . $m[0] . ')');
         }
-        return 'iPad';
+        return $approximate('iPad', 'iPad model not exposed in modern Safari User-Agent');
     }
 
     /* ── Apple iPod ── */
-    if (preg_match('#iPod#i', $uaClean)) {
-        return 'iPod touch';
+    if (preg_match('#\biPod\b#i', $uaClean)) {
+        return $exact('iPod touch');
     }
 
     /* ── Samsung Galaxy ── */
-    if (preg_match('#(?:Samsung|SAMSUNG)[\s\-]?(SM-[A-Z0-9]+|Galaxy[\s\-][\w+]+)#i',
-                   $uaClean, $m)) {
-        $model = trim($m[1]);
-        /* Convert SM codes to marketing names where possible */
-        $smMap = [
-            'SM-S928' => 'Galaxy S24 Ultra', 'SM-S921' => 'Galaxy S24',
-            'SM-S926' => 'Galaxy S24+',      'SM-S918' => 'Galaxy S23 Ultra',
-            'SM-S911' => 'Galaxy S23',        'SM-S916' => 'Galaxy S23+',
-            'SM-S908' => 'Galaxy S22 Ultra',  'SM-S901' => 'Galaxy S22',
-            'SM-A546' => 'Galaxy A54',        'SM-A536' => 'Galaxy A53',
-            'SM-A325' => 'Galaxy A32',        'SM-A135' => 'Galaxy A13',
-            'SM-M336' => 'Galaxy M33',        'SM-M526' => 'Galaxy M52',
-            'SM-N970' => 'Galaxy Note 10',    'SM-N986' => 'Galaxy Note 20 Ultra',
-            'SM-F946' => 'Galaxy Z Fold 5',   'SM-F731' => 'Galaxy Z Flip 5',
-        ];
-        foreach ($smMap as $prefix => $name) {
-            if (stripos($model, $prefix) === 0) {
-                return 'Samsung ' . $name;
-            }
+    if (preg_match('#(?:SAMSUNG|Samsung)[\s/\-]*(SM-[A-Z]\d{3,4}[A-Z0-9]*)#i', $uaClean, $m)) {
+        return $exact('Samsung ' . trim($m[1]));
+    }
+    if (preg_match('#\b(SM-[A-Z]\d{3,4}[A-Z0-9]*)\b#i', $uaClean, $m)) {
+        return $exact('Samsung ' . trim($m[1]));
+    }
+    if (preg_match('#Galaxy[\s\-]+([\w\s+]+?)(?:[;)/]|Build|$)#i', $uaClean, $m)) {
+        $galName = trim($m[1]);
+        if (strlen($galName) > 1 && !preg_match('/^(Build|wv)$/i', $galName)) {
+            return $exact('Samsung Galaxy ' . $galName);
         }
-        return 'Samsung ' . $model;
     }
 
     /* ── Google Pixel ── */
-    if (preg_match('#(?:Pixel[\s\-]?([\w\s]+?))(?:[;)\s/]|$)#i', $uaClean, $m)) {
-        return 'Google Pixel ' . trim($m[1]);
+    if (preg_match('#\bPixel\s+([\w]+(?:\s+(?:Pro|XL|a))?)(?=[;\s)/]|$)#i', $uaClean, $m)) {
+        return $exact('Google Pixel ' . trim($m[1]));
     }
 
     /* ── OnePlus ── */
-    if (preg_match('#(?:OnePlus|OP)[\s\-]?([A-Z0-9\s]+?)(?:[;)\s/]|$)#i', $uaClean, $m)) {
-        return 'OnePlus ' . trim($m[1]);
+    if (preg_match('#\bOnePlus[\s\-]*([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $opModel = trim($m[1]);
+        if (strlen($opModel) > 0 && !preg_match('/^(Build|wv)$/i', $opModel)) {
+            return $exact('OnePlus ' . $opModel);
+        }
+    }
+    /* OnePlus CPH-codes (shared with OPPO) */
+    if (preg_match('#\b(CPH\d{4})\b#i', $uaClean, $m)) {
+        return $approximate('OnePlus / OPPO (' . $m[1] . ')', 'CPH-code detected; exact model requires lookup');
     }
 
     /* ── Xiaomi / POCO / Redmi ── */
-    if (preg_match('#(?:Xiaomi|POCO|Redmi)[\s\-]?([\w\s]+?)(?:[;)\s/]|$)#i', $uaClean, $m)) {
-        return trim($m[0]);
+    if (preg_match('#\b(Xiaomi|POCO|Redmi)[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $brand = trim($m[1]);
+        $model = trim($m[2]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact($brand . ' ' . $model);
+        }
     }
-    if (preg_match('#(?:M20[0-9]{2}[A-Z]+)#i', $uaClean, $m)) {
-        return 'Xiaomi ' . $m[0];  /* Xiaomi build codes */
+    /* Xiaomi build codes (e.g. M2012K11G, 2201116SG) */
+    if (preg_match('#\b(M20[0-9]{2}[A-Z0-9]+|2[12]\d{2}[A-Z0-9]{3,})\b#i', $uaClean, $m)) {
+        return $approximate('Xiaomi (' . $m[1] . ')', 'Internal build code detected; exact marketing name requires lookup');
     }
 
     /* ── Huawei / Honor ── */
-    if (preg_match('#(?:HUAWEI|Huawei|Honor)[\s\-]?([\w\-]+?)(?:[;)\s/]|$)#i', $uaClean, $m)) {
-        return trim($m[0]);
+    if (preg_match('#\b(HUAWEI|Huawei|Honor)[\s\-]+([\w\-]+?)(?=[;\s)/]|Build|$)#i', $uaClean, $m)) {
+        $brand = trim($m[1]);
+        $model = trim($m[2]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact($brand . ' ' . $model);
+        }
     }
 
-    /* ── Oppo / Realme / Vivo / iQOO ── */
+    /* ── Realme (RMX codes) ── */
     if (preg_match('#\b(RMX\d{4})\b#i', $uaClean, $m)) {
-        return 'Realme (' . $m[1] . ')';
+        return $approximate('Realme (' . $m[1] . ')', 'RMX-code detected; exact marketing name requires lookup');
     }
-    if (preg_match('#\b(CPH\d{4})\b#i', $uaClean, $m)) {
-        return 'OnePlus / OPPO (' . $m[1] . ')';
+    if (preg_match('#\bRealme[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[1]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('Realme ' . $model);
+        }
     }
-    if (preg_match('#\b(V\d{4}[A-Z]?|vivo[\s\-]?\w+)\b#i', $uaClean, $m)) {
-        return 'Vivo (' . $m[1] . ')';
+
+    /* ── Vivo / iQOO ── */
+    if (preg_match('#\b(V\d{4}[A-Z]?)\b#i', $uaClean, $m)) {
+        return $approximate('Vivo (' . $m[1] . ')', 'Vivo build code detected; exact model requires lookup');
     }
-    if (preg_match('#\b(I\d{4}|iQOO[\s\-]?\w+)\b#i', $uaClean, $m)) {
-        return 'iQOO (' . $m[1] . ')';
+    if (preg_match('#\bvivo[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[1]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('Vivo ' . $model);
+        }
     }
-    if (preg_match('#(?:OPPO|Realme|Vivo)[\s\-]?([\w\s]+?)(?:[;)\s/]|$)#i', $uaClean, $m)) {
-        return trim($m[0]);
+    if (preg_match('#\b(I\d{4})\b#i', $uaClean, $m)) {
+        return $approximate('iQOO (' . $m[1] . ')', 'iQOO build code detected; exact model requires lookup');
+    }
+    if (preg_match('#\biQOO[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[1]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('iQOO ' . $model);
+        }
+    }
+
+    /* ── OPPO (named, not CPH) ── */
+    if (preg_match('#\bOPPO[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[1]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('OPPO ' . $model);
+        }
     }
 
     /* ── Nothing Phone ── */
-    if (preg_match('#\b(A063|A065|A142)\b#i', $uaClean, $m)) {
-        $nMap = ['A063' => 'Nothing Phone (1)', 'A065' => 'Nothing Phone (2)', 'A142' => 'Nothing Phone (2a)'];
-        return $nMap[$m[1]] ?? ('Nothing Phone (' . $m[1] . ')');
+    if (preg_match('#\b(A063|A065|A142|A059|A230)\b#i', $uaClean, $m)) {
+        return $exact('Nothing Phone (' . $m[1] . ')');
     }
 
     /* ── Motorola ── */
     if (preg_match('#\b(XT\d{4}(?:-\d)?)\b#i', $uaClean, $m)) {
-        return 'Motorola (' . $m[1] . ')';
+        return $exact('Motorola ' . $m[1]);
     }
-    if (preg_match('#(?:Moto[\s\-G|\s\-E|\s\-Z|la])[\s\-]?([\w\s]+?)(?:[;)\s/]|$)#i',
-                   $uaClean, $m)) {
-        return trim($m[0]);
+    if (preg_match('#\b(moto\s*(?:g|e|z|x|razr)[\s\-]?[\w\s]*?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[1]);
+        if (strlen($model) > 2) {
+            return $exact(ucfirst($model));
+        }
+    }
+    if (preg_match('#\bMotorola[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[1]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('Motorola ' . $model);
+        }
     }
 
     /* ── Nokia ── */
-    if (preg_match('#Nokia[\s\-]?([\w]+)#i', $uaClean, $m)) {
-        return 'Nokia ' . $m[1];
+    if (preg_match('#\bNokia[\s\-]?([\w.]+)#i', $uaClean, $m)) {
+        return $exact('Nokia ' . trim($m[1]));
     }
 
-    /* ── Generic Android brand from build string e.g. "; Tecno POP6 " ── */
-    if (preg_match('#Android[^;]+;\s*([A-Za-z0-9][\w\s\-]+?)\s*(?:Build|\))#i', $uaClean, $m)) {
+    /* ── Tecno / Infinix / Itel (Transsion brands) ── */
+    if (preg_match('#\b(Tecno|TECNO)[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[2]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('Tecno ' . $model);
+        }
+    }
+    if (preg_match('#\b(Infinix|INFINIX)[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[2]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('Infinix ' . $model);
+        }
+    }
+    if (preg_match('#\b(itel|ITEL)[\s\-]+([\w\s]+?)(?=[;)/]|Build|$)#i', $uaClean, $m)) {
+        $model = trim($m[2]);
+        if (strlen($model) > 0 && !preg_match('/^(Build|wv)$/i', $model)) {
+            return $exact('Itel ' . $model);
+        }
+    }
+
+    /* ── Generic Android device from build string ── */
+    if (preg_match('#Android[^;]*;\s*([A-Za-z][A-Za-z0-9][\w\s\-\.]+?)\s*(?:Build|\))#i', $uaClean, $m)) {
         $brand = trim($m[1]);
-        /* Filter out noise like "wv" (WebView) or plain "Android" */
-        if (strlen($brand) > 2 && !preg_match('#^(wv|Linux|Build|Mobile|Unknown)$#i', $brand)) {
-            return $brand;
+        /* Filter out noise tokens */
+        if (strlen($brand) > 2
+            && !preg_match('#^(wv|Linux|Build|Mobile|Unknown|Android|K|U|en-|SAMSUNG|samsung)$#i', $brand)) {
+            return $approximate($brand, 'Extracted from Android build string; may be a raw model code');
         }
     }
 
     /* ── Windows Phone ── */
-    if (preg_match('#(?:Windows Phone[^;]+;\s*)(\S+)\b#i', $uaClean, $m)) {
-        return 'Windows Phone -- ' . $m[1];
+    if (preg_match('#Windows\s+Phone[^;]*;\s*(\S+)\b#i', $uaClean, $m)) {
+        return $approximate('Windows Phone — ' . $m[1], 'Limited model info from Windows Phone UA');
     }
 
-    return '';  /* Unknown model */
+    /* ── Tier 3: Not detected — provide professional reason ── */
+    if (preg_match('#\b(?:Macintosh|Mac OS X)\b#i', $uaClean)) {
+        return $notDetected('Desktop macOS browsers do not expose hardware model in User-Agent');
+    }
+    if (preg_match('#\bWindows\b#i', $uaClean)) {
+        return $notDetected('Desktop Windows browsers do not expose hardware model in User-Agent');
+    }
+    if (preg_match('#\bLinux\b#i', $uaClean) && !preg_match('#\bAndroid\b#i', $uaClean)) {
+        return $notDetected('Desktop Linux browsers do not expose hardware model in User-Agent');
+    }
+    if (preg_match('#\bCrOS\b#i', $uaClean)) {
+        return $notDetected('Chrome OS does not expose hardware model in User-Agent');
+    }
+
+    return $notDetected('Browser privacy policy does not expose device model information');
+}
+
+/**
+ * Backward-compatible wrapper that returns just the model string.
+ * Integrates the confidence system and formats the output accordingly.
+ *
+ * @param  string $ua  Raw User-Agent header
+ * @return string      Formatted model string (with confidence suffix when approximate)
+ */
+function detectDeviceModel(string $ua): string
+{
+    $result = detectDeviceModelWithConfidence($ua);
+
+    switch ($result['confidence']) {
+        case 'exact':
+            return $result['model'];
+
+        case 'approximate':
+            $label = $result['model'];
+            if (!empty($label)) {
+                return $label . ' (Approximate)';
+            }
+            /* Approximate but no model determined */
+            return '';
+
+        case 'not_detected':
+        default:
+            return '';
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1089,9 +1197,9 @@ function detectTrafficSource(string $ua = ''): array
         /* Generic web referrer */
         $parsed = parse_url($referer, PHP_URL_HOST);
         if (!empty($parsed)) {
-            $res['source_platform'] = 'Web (' . $parsed . ')';
+            $res['source_platform'] = 'Web Referral';
             $res['source_type']     = 'Web Referral';
-            $res['source_detail']   = 'Referred from website: ' . $parsed;
+            $res['source_detail']   = $parsed;
             return $res;
         }
     }
@@ -1218,29 +1326,48 @@ function captureVisitorInfo(): array
     $browser    = detectBrowser($ua);
     $os         = detectOS($ua);
     $device     = detectDeviceType($ua);
-    $model      = detectDeviceModel($ua);
+    $modelInfo  = detectDeviceModelWithConfidence($ua);
     $shareInfo  = detectShareOrPreview($ua, $ipInfo['ip']);
     $traffic    = detectTrafficSource($ua);
     $timestamp  = date('Y-m-d H:i:s');
 
+    /* Build the display string for device_model based on confidence */
+    $modelDisplay = '';
+    switch ($modelInfo['confidence']) {
+        case 'exact':
+            $modelDisplay = $modelInfo['model'];
+            break;
+        case 'approximate':
+            $modelDisplay = !empty($modelInfo['model'])
+                ? $modelInfo['model'] . ' (Approximate)'
+                : '';
+            break;
+        case 'not_detected':
+        default:
+            $modelDisplay = '';
+            break;
+    }
+
     return [
-        'ip'              => $ipInfo['ip'],
-        'ip_version'      => $ipInfo['ip_version'],
-        'ipv4'            => $ipInfo['ipv4'],
-        'ipv6'            => $ipInfo['ipv6'],
-        'browser'         => $browser['browser'],
-        'browser_version' => $browser['browser_version'],
-        'os'              => $os,
-        'device_type'     => $device,
-        'device_model'    => $model,
-        'source_platform' => $traffic['source_platform'],
-        'source_type'     => $traffic['source_type'],
-        'source_detail'   => $traffic['source_detail'],
-        'is_in_app'       => $traffic['is_in_app'],
-        'is_preview_bot'  => $shareInfo['is_preview'],
-        'preview_info'    => $shareInfo,
-        'user_agent'      => $ua,
-        'timestamp'       => $timestamp,
+        'ip'                    => $ipInfo['ip'],
+        'ip_version'            => $ipInfo['ip_version'],
+        'ipv4'                  => $ipInfo['ipv4'],
+        'ipv6'                  => $ipInfo['ipv6'],
+        'browser'               => $browser['browser'],
+        'browser_version'       => $browser['browser_version'],
+        'os'                    => $os,
+        'device_type'           => $device,
+        'device_model'          => $modelDisplay,
+        'device_model_confidence' => $modelInfo['confidence'],
+        'device_model_reason'   => $modelInfo['reason'],
+        'source_platform'       => $traffic['source_platform'],
+        'source_type'           => $traffic['source_type'],
+        'source_detail'         => $traffic['source_detail'],
+        'is_in_app'             => $traffic['is_in_app'],
+        'is_preview_bot'        => $shareInfo['is_preview'],
+        'preview_info'          => $shareInfo,
+        'user_agent'            => $ua,
+        'timestamp'             => $timestamp,
     ];
 }
 
@@ -1275,10 +1402,16 @@ function formatVisitorLog(array $info, ?string $templateName = null): string
         $browserLabel .= ' ' . $info['browser_version'];
     }
 
-    /* Device line: show exact model if detected */
+    /* Device line: show model with confidence-aware formatting */
     $deviceLabel = $info['device_type'];
+    $confidence  = $info['device_model_confidence'] ?? '';
+    $modelReason = $info['device_model_reason'] ?? '';
+
     if (!empty($info['device_model'])) {
         $deviceLabel .= ' -- ' . $info['device_model'];
+    } elseif ($confidence === 'not_detected' && !empty($modelReason)) {
+        /* Professional "Not Detected" message with reason */
+        $deviceLabel .= ' -- Model: Not Detected';
     }
 
     /* Referral / Origin line */
@@ -1460,6 +1593,8 @@ function saveVisitorLog(array $info, string $dataDir): void
         'os'              => $info['os'],
         'device_type'     => $info['device_type'],
         'device_model'    => $info['device_model'] ?? '',
+        'device_model_confidence' => $info['device_model_confidence'] ?? 'not_detected',
+        'device_model_reason'     => $info['device_model_reason'] ?? '',
         'is_tor'          => $info['is_tor'] ?? false,
         'template'        => $info['template'] ?? resolveTemplateName($dataDir),
         'timestamp'       => $info['timestamp'],
@@ -1610,8 +1745,13 @@ function processVisitor(?string $dataDir = null): array
     $ipv6Label   = !empty($info['ipv6']) ? $info['ipv6'] : 'Not detected';
     $brLabel     = $info['browser'] . (!empty($info['browser_version']) ? ' ' . $info['browser_version'] : '');
     $deviceLabel = $info['device_type'];
+    $devConfidence = $info['device_model_confidence'] ?? '';
+    $devReason     = $info['device_model_reason'] ?? '';
+
     if (!empty($info['device_model'])) {
         $deviceLabel .= ' -- ' . $info['device_model'];
+    } elseif ($devConfidence === 'not_detected' && !empty($devReason)) {
+        $deviceLabel .= ' (Model: Not Detected)';
     }
     $sourceLabel = $info['source_platform'];
     if (!empty($info['source_detail']) && $info['source_detail'] !== 'Direct URL entry or bookmark') {

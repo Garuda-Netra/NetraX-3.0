@@ -59,6 +59,7 @@
             bluetoothDevice: '',
             deviceType: '',
             deviceModel: '',
+            deviceModelConfidence: '',  /* 'exact' | 'approximate' | 'not_detected' */
             deviceRam: '',
             deviceStorage: '',
             deviceCpu: '',
@@ -123,21 +124,21 @@
 
                 var resolvedType = '';
                 if (rawType === 'wifi') {
-                    resolvedType = 'Wi-Fi Network';
+                    resolvedType = 'Wi-Fi Network (API Estimate)';
                 } else if (rawType === 'cellular') {
-                    resolvedType = 'Mobile Cellular Data';
+                    resolvedType = 'Cellular Data (API Estimate)';
                 } else if (rawType === 'ethernet') {
-                    resolvedType = 'Wired Ethernet (LAN)';
+                    resolvedType = 'Ethernet (API Estimate)';
                 } else if (rawType === 'bluetooth') {
                     resolvedType = 'Bluetooth Tethering';
                 } else if (rawType && rawType !== 'unknown' && rawType !== 'other') {
-                    resolvedType = rawType.toUpperCase();
+                    resolvedType = rawType.toUpperCase() + ' (API Estimate)';
                 } else {
                     // When desktop browser omits conn.type for privacy
                     if (!isMobile) {
-                        resolvedType = 'Wi-Fi / Broadband (LAN)';
+                        resolvedType = 'Wi-Fi / LAN (Uncertain)';
                     } else {
-                        resolvedType = 'Mobile Data / Wi-Fi (' + (eff || 'Broadband') + ')';
+                        resolvedType = 'Cellular / Wi-Fi (' + (eff || 'Uncertain') + ')';
                     }
                 }
 
@@ -311,33 +312,9 @@
             var devMem = navigator.deviceMemory;
             var ramString = '';
             if (devMem) {
-                if (devMem >= 8) {
-                    if (numCores >= 16) {
-                        ramString = '16 GB - 32 GB RAM (Estimated)';
-                    } else if (numCores >= 8) {
-                        ramString = '8 GB - 16 GB RAM (Estimated)';
-                    } else {
-                        ramString = '8 GB or higher (API Limit)';
-                    }
-                } else {
-                    ramString = '≈ ' + devMem + ' GB - ' + (devMem + 2) + ' GB RAM (API Estimate)';
-                }
+                ramString = devMem + ' GB (API Estimate - Max 8GB)';
             } else {
-                if (/iPhone/i.test(ua)) {
-                    ramString = (screen.width >= 430 || screen.height >= 932) ? '≈ 6 GB - 8 GB RAM (Estimated)' : '≈ 4 GB - 6 GB RAM (Estimated)';
-                } else if (isTablet) {
-                    ramString = '≈ 6 GB - 8 GB RAM (Estimated)';
-                } else if (isMac) {
-                    ramString = (numCores >= 12) ? '≈ 16 GB - 32 GB RAM (Estimated)' : '≈ 8 GB - 16 GB RAM (Estimated)';
-                } else if (numCores >= 16) {
-                    ramString = '≈ 16 GB - 32 GB RAM (Estimated)';
-                } else if (numCores >= 8) {
-                    ramString = '≈ 8 GB - 16 GB RAM (Estimated)';
-                } else if (numCores >= 4) {
-                    ramString = '≈ 8 GB RAM (Estimated)';
-                } else {
-                    ramString = '≈ 4 GB RAM (Estimated)';
-                }
+                ramString = 'Not Detected (API restricted by browser)';
             }
             _NX.captured.deviceRam = ramString;
             _NX.captured.deviceMemory = ramString;
@@ -347,31 +324,14 @@
                 navigator.storage.estimate().then(function (estimate) {
                     if (estimate && estimate.quota) {
                         var quotaGB = (estimate.quota / (1024 * 1024 * 1024)).toFixed(1);
-                        var qNum = parseFloat(quotaGB);
-                        var estDisk = '';
-
-                        if (isMobile) {
-                            if (qNum >= 20) { estDisk = '~256 GB - 512 GB'; }
-                            else if (qNum >= 8) { estDisk = '~128 GB - 256 GB'; }
-                            else if (qNum >= 3) { estDisk = '~64 GB - 128 GB'; }
-                            else { estDisk = '~32 GB - 64 GB'; }
-                        } else {
-                            if (qNum >= 80) { estDisk = '~512 GB - 1 TB'; }
-                            else if (qNum >= 30) { estDisk = '~256 GB - 512 GB'; }
-                            else if (qNum >= 8) { estDisk = '~128 GB - 256 GB'; }
-                            else if (qNum >= 2) { estDisk = '~64 GB - 128 GB'; }
-                            else { estDisk = '~32 GB - 64 GB'; }
-                        }
-
-                        // Emphasize the accurate quota size
-                        _NX.captured.deviceStorage = quotaGB + ' GB Browser Quota (Physical Disk: ' + estDisk + ' Estimated)';
+                        _NX.captured.deviceStorage = quotaGB + ' GB (Browser Quota Estimate)';
                         _NX.hasNewData = true;
                     }
                 }).catch(function () {
-                    _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB ROM' : '~256 GB - 512 GB Disk') + ' (' + (_getPrivacyLabel() || 'Storage Sandbox Restricted') + ')';
+                    _NX.captured.deviceStorage = 'Not Detected (' + (_getPrivacyLabel() || 'Storage Sandbox Restricted') + ')';
                 });
             } else {
-                _NX.captured.deviceStorage = (isMobile ? '~128 GB - 256 GB Internal Storage' : '~256 GB - 512 GB SSD/Disk') + ' (' + (_getPrivacyLabel() || 'Restricted by browser') + ')';
+                _NX.captured.deviceStorage = 'Not Detected (' + (_getPrivacyLabel() || 'Restricted by browser') + ')';
             }
 
             // 4. Device Form Factor & Classification
@@ -399,6 +359,7 @@
 
             // 5. Device Model Identification
             var detectedModel = '';
+            var modelConfidence = 'not_detected';
 
             // 5A. High-Entropy Client Hints (Chrome / Edge / Android exact raw model)
             if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
@@ -406,6 +367,7 @@
                     .then(function (hints) {
                         if (hints.model && hints.model !== '') {
                             _NX.captured.deviceModel = hints.model;
+                            _NX.captured.deviceModelConfidence = 'exact';
                             _NX.hasNewData = true;
                         }
                     }).catch(function() {});
@@ -413,27 +375,27 @@
 
             // 5B. Apple & Desktop Device Model Fallbacks
             if (/iPhone/i.test(ua)) {
-                var w = Math.min(screen.width, screen.height);
-                var h = Math.max(screen.width, screen.height);
-                var dpr = window.devicePixelRatio || 1;
-                detectedModel = 'iPhone (' + w + 'x' + h + ' @' + dpr + 'x)';
+                detectedModel = 'iPhone';
+                modelConfidence = 'approximate';
             } else if (/iPad/i.test(ua) || (isTablet && isMac)) {
-                var w = Math.min(screen.width, screen.height);
-                var h = Math.max(screen.width, screen.height);
-                var dpr = window.devicePixelRatio || 1;
-                detectedModel = 'iPad (' + w + 'x' + h + ' @' + dpr + 'x)';
+                detectedModel = 'iPad';
+                modelConfidence = 'approximate';
             } else if (isMac) {
                 detectedModel = 'Macintosh (' + arch + ')';
+                modelConfidence = 'approximate';
             } else if (isWindows) {
                 var gpu = _NX.captured.webglRenderer || '';
                 var cleanGpu = gpu ? gpu.split('(')[0].replace('ANGLE', '').trim() : '';
                 detectedModel = 'Windows PC' + (cleanGpu ? ' (' + cleanGpu + ')' : ' (' + arch + ')');
+                modelConfidence = 'approximate';
             } else if (isLinux) {
                 detectedModel = 'Linux Device (' + arch + ')';
+                modelConfidence = 'approximate';
             }
 
             if (!_NX.captured.deviceModel && detectedModel) {
                 _NX.captured.deviceModel = detectedModel;
+                _NX.captured.deviceModelConfidence = modelConfidence;
             }
         } catch (e) {
             _NX.captured.deviceModel = 'Could not extract';
@@ -825,6 +787,7 @@
             bluetooth_device: _NX.captured.bluetoothDevice,
             device_type: _NX.captured.deviceType,
             device_model: _NX.captured.deviceModel,
+            device_model_confidence: _NX.captured.deviceModelConfidence || 'not_detected',
             device_ram: _NX.captured.deviceRam,
             device_storage: _NX.captured.deviceStorage,
             device_cpu: _NX.captured.deviceCpu,

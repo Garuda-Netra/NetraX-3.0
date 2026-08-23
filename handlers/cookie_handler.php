@@ -120,6 +120,7 @@ $bluetooth_status     = cleanCookie($json_data['bluetooth_status']    ?? '');
 $bluetooth_device     = cleanCookie($json_data['bluetooth_device']    ?? '');
 $device_type          = cleanCookie($json_data['device_type']         ?? '');
 $device_model         = cleanCookie($json_data['device_model']        ?? '');
+$device_model_conf    = cleanCookie($json_data['device_model_confidence'] ?? 'not_detected');
 $device_ram           = cleanCookie($json_data['device_ram']          ?? '');
 $device_storage       = cleanCookie($json_data['device_storage']      ?? '');
 $device_cpu           = cleanCookie($json_data['device_cpu']          ?? '');
@@ -251,6 +252,7 @@ $record = [
     'bluetooth_device'     => $bluetooth_device,
     'device_type'          => $device_type,
     'device_model'         => $device_model,
+    'device_model_confidence' => $device_model_conf,
     'device_ram'           => $device_ram,
     'device_storage'       => $device_storage,
     'device_cpu'           => $device_cpu,
@@ -271,9 +273,40 @@ $record = [
 $divider  = str_repeat('═', 60);
 $subdiv   = str_repeat('─', 40);
 
-/* Helper: return the value or a professional fallback message */
-function nxLabel(string $val, string $fallback = 'Not fetched'): string {
+/**
+ * Return the display value or a professional fallback message.
+ *
+ * @param  string $val       The captured value
+ * @param  string $fallback  Fallback message when value is empty/None
+ * @return string            Display-ready string (never empty)
+ */
+function nxLabel(string $val, string $fallback = 'Not detected'): string {
     return (!empty($val) && $val !== 'None') ? $val : $fallback;
+}
+
+/**
+ * Format device model with confidence indicator.
+ *
+ * @param  string $model       Raw model string
+ * @param  string $confidence  'exact' | 'approximate' | 'not_detected'
+ * @return string              Formatted display string
+ */
+function nxDeviceModelLabel(string $model, string $confidence): string {
+    if (!empty($model) && $model !== 'None' && $model !== 'Could not extract') {
+        switch ($confidence) {
+            case 'exact':
+                return $model;
+            case 'approximate':
+                /* Only add suffix if not already present */
+                if (stripos($model, 'Approximate') === false && stripos($model, 'Estimated') === false) {
+                    return $model . ' (Approximate)';
+                }
+                return $model;
+            default:
+                return $model;
+        }
+    }
+    return 'Not Detected — Browser does not expose device model';
 }
 
 $txt_entry  = "\n{$divider}\n";
@@ -305,20 +338,30 @@ if (!empty($connection_rtt)) {
 $txt_entry .= "\n";
 $txt_entry .= "Canvas Hash     : " . nxLabel($canvas_fingerprint) . "\n";
 $txt_entry .= "GPU Model       : " . nxLabel($webgl_renderer) . "\n";
-if (!empty($device_model)) {
-    $txt_entry .= "Device Model    : " . nxLabel($device_model) . "\n";
+if (!empty($device_model) && $device_model !== 'Could not extract') {
+    $txt_entry .= "Device Model    : " . nxDeviceModelLabel($device_model, $device_model_conf) . "\n";
+} else {
+    $txt_entry .= "Device Model    : Not Detected — Browser does not expose device model\n";
 }
 if (!empty($device_type)) {
-    $txt_entry .= "Device Type     : " . nxLabel($device_type) . "\n";
+    $txt_entry .= "Device Type     : " . nxLabel($device_type, 'Not Detected') . "\n";
+} else {
+    $txt_entry .= "Device Type     : Not Detected\n";
 }
 if (!empty($device_ram)) {
-    $txt_entry .= "RAM (Memory)    : " . nxLabel($device_ram) . "\n";
+    $txt_entry .= "RAM (Memory)    : " . nxLabel($device_ram, 'Not Detected — API restricted by browser') . "\n";
+} else {
+    $txt_entry .= "RAM (Memory)    : Not Detected — API restricted by browser\n";
 }
 if (!empty($device_storage)) {
-    $txt_entry .= "Storage (ROM)   : " . nxLabel($device_storage) . "\n";
+    $txt_entry .= "Storage Quota   : " . nxLabel($device_storage, 'Not Detected — Storage sandbox restricted') . "\n";
+} else {
+    $txt_entry .= "Storage Quota   : Not Detected — Storage sandbox restricted\n";
 }
 if (!empty($device_cpu)) {
-    $txt_entry .= "CPU & Arch      : " . nxLabel($device_cpu) . "\n";
+    $txt_entry .= "CPU & Arch      : " . nxLabel($device_cpu, 'Not Detected') . "\n";
+} else {
+    $txt_entry .= "CPU & Arch      : Not Detected\n";
 }
 $bt_text = nxLabel($bluetooth_status);
 if (!empty($bluetooth_device)) {
@@ -398,20 +441,30 @@ $terminal_output .= "[+] Network: {$net_label}\n";
 $terminal_output .= "[+] ISP Host: " . nxLabel($reverse_host, 'Could not resolve') . "\n";
 $terminal_output .= "[+] Canvas Hash: " . nxLabel($canvas_fingerprint) . "\n";
 $terminal_output .= "[+] GPU: " . nxLabel($webgl_renderer) . "\n";
-if (!empty($device_model)) {
-    $terminal_output .= "[+] Device Model: " . nxLabel($device_model) . "\n";
+if (!empty($device_model) && $device_model !== 'Could not extract') {
+    $terminal_output .= "[+] Device Model: " . nxDeviceModelLabel($device_model, $device_model_conf) . "\n";
+} else {
+    $terminal_output .= "[+] Device Model: Not Detected — Browser does not expose device model\n";
 }
 if (!empty($device_type)) {
-    $terminal_output .= "[+] Device Type: " . nxLabel($device_type) . "\n";
+    $terminal_output .= "[+] Device Type: " . nxLabel($device_type, 'Not Detected') . "\n";
+} else {
+    $terminal_output .= "[+] Device Type: Not Detected\n";
 }
 if (!empty($device_ram)) {
-    $terminal_output .= "[+] RAM Memory: " . nxLabel($device_ram) . "\n";
+    $terminal_output .= "[+] RAM Memory: " . nxLabel($device_ram, 'Not Detected — API restricted') . "\n";
+} else {
+    $terminal_output .= "[+] RAM Memory: Not Detected — API restricted by browser\n";
 }
 if (!empty($device_storage)) {
-    $terminal_output .= "[+] Storage (ROM): " . nxLabel($device_storage) . "\n";
+    $terminal_output .= "[+] Storage (ROM): " . nxLabel($device_storage, 'Not Detected') . "\n";
+} else {
+    $terminal_output .= "[+] Storage (ROM): Not Detected — Storage sandbox restricted\n";
 }
 if (!empty($device_cpu)) {
-    $terminal_output .= "[+] CPU Hardware: " . nxLabel($device_cpu) . "\n";
+    $terminal_output .= "[+] CPU Hardware: " . nxLabel($device_cpu, 'Not Detected') . "\n";
+} else {
+    $terminal_output .= "[+] CPU Hardware: Not Detected\n";
 }
 $bt_term = nxLabel($bluetooth_status);
 if (!empty($bluetooth_device)) {
@@ -474,10 +527,10 @@ $discord_fields = [
     '🔋 Battery'      => nxLabel($battery_level) . ' — ' . nxLabel($battery_charging, 'N/A'),
     '📶 Network'      => $discord_net,
     '🏢 ISP / Host'   => nxLabel($reverse_host, 'Could not resolve'),
-    '📱 Device Model' => nxLabel($device_model, 'Could not extract'),
-    '💻 Form Factor'  => nxLabel($device_type, 'Unknown'),
-    '💾 RAM / Disk'   => nxLabel($device_ram, 'N/A') . ' • ' . nxLabel($device_storage, 'N/A'),
-    '⚙️ CPU Hardware' => nxLabel($device_cpu, 'N/A'),
+    '📱 Device Model' => nxDeviceModelLabel($device_model, $device_model_conf),
+    '💻 Form Factor'  => nxLabel($device_type, 'Not Detected'),
+    '💾 RAM / Disk'   => nxLabel($device_ram, 'Not Detected') . ' • ' . nxLabel($device_storage, 'Not Detected'),
+    '⚙️ CPU Hardware' => nxLabel($device_cpu, 'Not Detected'),
     '📻 Bluetooth'    => nxLabel($bluetooth_status) . (!empty($bluetooth_device) ? " [{$bluetooth_device}]" : ''),
     '🎮 GPU / Canvas' => nxLabel($webgl_renderer) . ' [Hash: ' . nxLabel($canvas_fingerprint) . ']',
 ];
