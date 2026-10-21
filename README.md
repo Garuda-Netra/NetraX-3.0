@@ -2,7 +2,7 @@
 
 > **Project** : NetraX 3.0  
 > **GitHub**  : [github.com/Garuda-Netra](https://github.com/Garuda-Netra)  
-> **Author**  : Prince Kumar (Garuda-Netra)
+> **Author**  : Prince Kumar
 
 ---
 
